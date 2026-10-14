@@ -1,0 +1,765 @@
+{
+  "n_lignes_brut": 103904,
+  "doublons_id": 0,
+  "doublons_lignes_hors_id": 0,
+  "taux_satisfaits": 43.3,
+  "zeros_par_service": {
+    "Wifi à bord": 3103,
+    "Horaires pratiques": 5300,
+    "Réservation en ligne": 4487,
+    "Emplacement porte": 1,
+    "Repas et boissons": 107,
+    "Embarquement en ligne": 2428,
+    "Confort du siège": 1,
+    "Divertissement à bord": 14,
+    "Service à bord": 3,
+    "Espace jambes": 472,
+    "Gestion bagages": 0,
+    "Enregistrement": 1,
+    "Service en vol": 3,
+    "Propreté": 12
+  },
+  "part_zeros_par_service_pct": {
+    "Wifi à bord": 3.0,
+    "Horaires pratiques": 5.1,
+    "Réservation en ligne": 4.3,
+    "Emplacement porte": 0.0,
+    "Repas et boissons": 0.1,
+    "Embarquement en ligne": 2.3,
+    "Confort du siège": 0.0,
+    "Divertissement à bord": 0.0,
+    "Service à bord": 0.0,
+    "Espace jambes": 0.5,
+    "Gestion bagages": 0.0,
+    "Enregistrement": 0.0,
+    "Service en vol": 0.0,
+    "Propreté": 0.0
+  },
+  "lignes_avec_au_moins_un_zero": 8200,
+  "part_lignes_avec_zero_pct": 7.9,
+  "taux_sat_si_zero_pct": {
+    "Wifi à bord": 99.7,
+    "Horaires pratiques": 47.5,
+    "Réservation en ligne": 66.4,
+    "Repas et boissons": 46.7,
+    "Embarquement en ligne": 55.6,
+    "Espace jambes": 35.2
+  },
+  "retard_arrivee_manquant": 310,
+  "corr_retard_dep_arr": 0.965,
+  "retard_manquant_dep_median": 8.0,
+  "retard_manquant_taux_sat_pct": 41.3,
+  "retard_manquant_part_dep_zero_pct": 37.4,
+  "imputation_retard_pente": 0.98,
+  "imputation_retard_intercept": 0.722,
+  "age_min": 7,
+  "age_max": 85,
+  "age_median": 40.0,
+  "n_moins_16": 6048,
+  "n_moins_18": 7931,
+  "n_lignes_propres": 103904,
+  "taux_par_classe": {
+    "Business": {
+      "taux_pct": 69.4,
+      "n": 49665
+    },
+    "Eco": {
+      "taux_pct": 18.6,
+      "n": 46745
+    },
+    "Eco Plus": {
+      "taux_pct": 24.6,
+      "n": 7494
+    }
+  },
+  "taux_par_type_voyage": {
+    "Business travel": {
+      "taux_pct": 58.3,
+      "n": 71655
+    },
+    "Personal Travel": {
+      "taux_pct": 10.2,
+      "n": 32249
+    }
+  },
+  "taux_par_fidelite": {
+    "Loyal Customer": {
+      "taux_pct": 47.7,
+      "n": 84923
+    },
+    "disloyal Customer": {
+      "taux_pct": 23.7,
+      "n": 18981
+    }
+  },
+  "taux_par_genre": {
+    "Female": {
+      "taux_pct": 42.7,
+      "n": 52727
+    },
+    "Male": {
+      "taux_pct": 43.9,
+      "n": 51177
+    }
+  },
+  "taux_par_age": {
+    "<18": {
+      "taux_pct": 16.4,
+      "n": 7931
+    },
+    "18-25": {
+      "taux_pct": 34.4,
+      "n": 14682
+    },
+    "26-35": {
+      "taux_pct": 37.5,
+      "n": 18848
+    },
+    "36-45": {
+      "taux_pct": 52.0,
+      "n": 24548
+    },
+    "46-55": {
+      "taux_pct": 57.7,
+      "n": 20949
+    },
+    "56-65": {
+      "taux_pct": 46.4,
+      "n": 12940
+    },
+    ">65": {
+      "taux_pct": 18.4,
+      "n": 4006
+    }
+  },
+  "taux_par_retard_arrivee": {
+    "0 min": {
+      "taux_pct": 47.3,
+      "n": 58159
+    },
+    "1-15": {
+      "taux_pct": 41.3,
+      "n": 21974
+    },
+    "16-60": {
+      "taux_pct": 35.5,
+      "n": 16376
+    },
+    "61-120": {
+      "taux_pct": 35.2,
+      "n": 4749
+    },
+    ">120": {
+      "taux_pct": 36.7,
+      "n": 2646
+    }
+  },
+  "taux_par_distance": {
+    "<500": {
+      "taux_pct": 33.3,
+      "n": 32321
+    },
+    "500-1000": {
+      "taux_pct": 32.5,
+      "n": 27744
+    },
+    "1000-2000": {
+      "taux_pct": 46.1,
+      "n": 22426
+    },
+    "2000-3000": {
+      "taux_pct": 64.7,
+      "n": 13148
+    },
+    ">3000": {
+      "taux_pct": 77.4,
+      "n": 8265
+    }
+  },
+  "taux_classe_x_voyage": {
+    "Business | Business travel": {
+      "taux_pct": 72.0,
+      "n": 47508
+    },
+    "Business | Personal Travel": {
+      "taux_pct": 12.2,
+      "n": 2157
+    },
+    "Eco | Business travel": {
+      "taux_pct": 29.6,
+      "n": 20257
+    },
+    "Eco | Personal Travel": {
+      "taux_pct": 10.2,
+      "n": 26488
+    },
+    "Eco Plus | Business travel": {
+      "taux_pct": 39.3,
+      "n": 3890
+    },
+    "Eco Plus | Personal Travel": {
+      "taux_pct": 8.7,
+      "n": 3604
+    }
+  },
+  "taux_fidelite_x_voyage": {
+    "Loyal Customer | Business travel": {
+      "taux_pct": 70.6,
+      "n": 52838
+    },
+    "Loyal Customer | Personal Travel": {
+      "taux_pct": 10.1,
+      "n": 32085
+    },
+    "disloyal Customer | Business travel": {
+      "taux_pct": 23.7,
+      "n": 18817
+    },
+    "disloyal Customer | Personal Travel": {
+      "taux_pct": 15.9,
+      "n": 164
+    }
+  },
+  "repartition_classe_pct": {
+    "Business": 47.8,
+    "Eco": 45.0,
+    "Eco Plus": 7.2
+  },
+  "repartition_voyage_pct": {
+    "Business travel": 69.0,
+    "Personal Travel": 31.0
+  },
+  "repartition_fidelite_pct": {
+    "Loyal Customer": 81.7,
+    "disloyal Customer": 18.3
+  },
+  "part_retard_arrivee_nul_pct": 56.0,
+  "retard_arrivee_median_si_positif": 17.0,
+  "retard_arrivee_p95": 79.84999999999127,
+  "retard_arrivee_max": 1584.0,
+  "corr_spearman_retard_sat": -0.1,
+  "corr_spearman_age_sat": 0.147,
+  "corr_spearman_distance_sat": 0.257,
+  "effet_retard_a_profil_constant": {
+    "0 min": 3.7,
+    "1-15": -2.2,
+    "16-60": -7.4,
+    "61-120": -6.4,
+    ">120": -6.3
+  },
+  "part_business_par_age_pct": {
+    "<18": 16.8,
+    "18-25": 33.6,
+    "26-35": 49.3,
+    "36-45": 58.1,
+    "46-55": 59.6,
+    "56-65": 48.8,
+    ">65": 26.6
+  },
+  "part_voyage_pro_par_age_pct": {
+    "<18": 28.3,
+    "18-25": 72.9,
+    "26-35": 72.8,
+    "36-45": 79.7,
+    "46-55": 75.9,
+    "56-65": 61.6,
+    ">65": 38.6
+  },
+  "corr_spearman_note_sat": {
+    "Embarquement en ligne": 0.59,
+    "Divertissement à bord": 0.399,
+    "Wifi à bord": 0.372,
+    "Confort du siège": 0.362,
+    "Service à bord": 0.328,
+    "Espace jambes": 0.32,
+    "Propreté": 0.303,
+    "Gestion bagages": 0.269,
+    "Service en vol": 0.265,
+    "Réservation en ligne": 0.234,
+    "Enregistrement": 0.233,
+    "Repas et boissons": 0.208,
+    "Emplacement porte": -0.0,
+    "Horaires pratiques": -0.047
+  },
+  "ecart_taux_sat_notes_4-5_vs_1-2_pts": {
+    "Embarquement en ligne": 59.9,
+    "Wifi à bord": 46.3,
+    "Divertissement à bord": 44.6,
+    "Confort du siège": 37.8,
+    "Propreté": 36.3,
+    "Service à bord": 35.5,
+    "Espace jambes": 34.7,
+    "Réservation en ligne": 28.3,
+    "Enregistrement": 27.6,
+    "Gestion bagages": 24.0,
+    "Service en vol": 23.6,
+    "Repas et boissons": 21.8,
+    "Emplacement porte": -2.2,
+    "Horaires pratiques": -6.0
+  },
+  "note_moyenne": {
+    "Wifi à bord": 2.81,
+    "Horaires pratiques": 3.22,
+    "Réservation en ligne": 2.88,
+    "Emplacement porte": 2.98,
+    "Repas et boissons": 3.21,
+    "Embarquement en ligne": 3.33,
+    "Confort du siège": 3.44,
+    "Divertissement à bord": 3.36,
+    "Service à bord": 3.38,
+    "Espace jambes": 3.37,
+    "Gestion bagages": 3.63,
+    "Enregistrement": 3.3,
+    "Service en vol": 3.64,
+    "Propreté": 3.29
+  },
+  "part_notes_1_2_pct": {
+    "Wifi à bord": 43.3,
+    "Horaires pratiques": 33.2,
+    "Réservation en ligne": 41.8,
+    "Emplacement porte": 35.6,
+    "Repas et boissons": 33.6,
+    "Embarquement en ligne": 27.8,
+    "Confort du siège": 26.0,
+    "Divertissement à bord": 29.0,
+    "Service à bord": 25.6,
+    "Espace jambes": 28.9,
+    "Gestion bagages": 18.1,
+    "Enregistrement": 24.8,
+    "Service en vol": 17.8,
+    "Propreté": 28.3
+  },
+  "auc_logreg_notes_holdout_interne": 0.924,
+  "logreg_notes_coef_standardises": {
+    "Embarquement en ligne": 1.283,
+    "Wifi à bord": 0.841,
+    "Espace jambes": 0.495,
+    "Service à bord": 0.446,
+    "Divertissement à bord": 0.444,
+    "Enregistrement": 0.333,
+    "Réservation en ligne": 0.267,
+    "Confort du siège": 0.243,
+    "Gestion bagages": 0.113,
+    "Propreté": 0.062,
+    "Service en vol": 0.044,
+    "Emplacement porte": 0.022,
+    "Repas et boissons": -0.13,
+    "Horaires pratiques": -0.885
+  },
+  "logreg_notes_odds_ratio_par_ecart_type": {
+    "Embarquement en ligne": 3.61,
+    "Wifi à bord": 2.32,
+    "Espace jambes": 1.64,
+    "Service à bord": 1.56,
+    "Divertissement à bord": 1.56,
+    "Enregistrement": 1.4,
+    "Réservation en ligne": 1.31,
+    "Confort du siège": 1.28,
+    "Gestion bagages": 1.12,
+    "Propreté": 1.06,
+    "Service en vol": 1.04,
+    "Emplacement porte": 1.02,
+    "Repas et boissons": 0.88,
+    "Horaires pratiques": 0.41
+  },
+  "logreg_notes_OR_par_point": {
+    "Wifi à bord": {
+      "OR": 1.97,
+      "IC95": [
+        1.92,
+        2.02
+      ],
+      "p": 0.0
+    },
+    "Horaires pratiques": {
+      "OR": 0.52,
+      "IC95": [
+        0.51,
+        0.53
+      ],
+      "p": 0.0
+    },
+    "Réservation en ligne": {
+      "OR": 1.22,
+      "IC95": [
+        1.19,
+        1.25
+      ],
+      "p": 2.3569412994919406e-55
+    },
+    "Emplacement porte": {
+      "OR": 1.03,
+      "IC95": [
+        1.01,
+        1.05
+      ],
+      "p": 0.001775668133988057
+    },
+    "Repas et boissons": {
+      "OR": 0.91,
+      "IC95": [
+        0.89,
+        0.92
+      ],
+      "p": 1.702682533859009e-21
+    },
+    "Embarquement en ligne": {
+      "OR": 2.78,
+      "IC95": [
+        2.72,
+        2.84
+      ],
+      "p": 0.0
+    },
+    "Confort du siège": {
+      "OR": 1.19,
+      "IC95": [
+        1.17,
+        1.22
+      ],
+      "p": 1.208321604489217e-60
+    },
+    "Divertissement à bord": {
+      "OR": 1.4,
+      "IC95": [
+        1.36,
+        1.44
+      ],
+      "p": 4.3892780413270686e-136
+    },
+    "Service à bord": {
+      "OR": 1.42,
+      "IC95": [
+        1.39,
+        1.45
+      ],
+      "p": 8.649283422422003e-274
+    },
+    "Espace jambes": {
+      "OR": 1.47,
+      "IC95": [
+        1.44,
+        1.49
+      ],
+      "p": 0.0
+    },
+    "Gestion bagages": {
+      "OR": 1.09,
+      "IC95": [
+        1.07,
+        1.12
+      ],
+      "p": 1.2486216662605467e-15
+    },
+    "Enregistrement": {
+      "OR": 1.3,
+      "IC95": [
+        1.28,
+        1.32
+      ],
+      "p": 1.0164863623748647e-212
+    },
+    "Service en vol": {
+      "OR": 1.04,
+      "IC95": [
+        1.02,
+        1.06
+      ],
+      "p": 0.0006887988064237947
+    },
+    "Propreté": {
+      "OR": 1.06,
+      "IC95": [
+        1.03,
+        1.08
+      ],
+      "p": 4.366881787529201e-06
+    }
+  },
+  "auc_gb_notes_holdout_interne": 0.99,
+  "importance_permutation_auc_perdue": {
+    "Wifi à bord": 0.1591,
+    "Emplacement porte": 0.0356,
+    "Embarquement en ligne": 0.0313,
+    "Horaires pratiques": 0.0165,
+    "Espace jambes": 0.0092,
+    "Divertissement à bord": 0.0063,
+    "Propreté": 0.0059,
+    "Enregistrement": 0.0051,
+    "Réservation en ligne": 0.0051,
+    "Service en vol": 0.0042,
+    "Gestion bagages": 0.0041,
+    "Confort du siège": 0.004,
+    "Repas et boissons": 0.0023,
+    "Service à bord": 0.0022
+  },
+  "auc_logreg_notes_plus_contexte": 0.964,
+  "coef_std_notes_avec_controle_contexte": {
+    "Embarquement en ligne": 1.158,
+    "Wifi à bord": 1.043,
+    "Espace jambes": 0.397,
+    "Service à bord": 0.446,
+    "Divertissement à bord": 0.106,
+    "Enregistrement": 0.448,
+    "Réservation en ligne": 0.495,
+    "Confort du siège": 0.055,
+    "Gestion bagages": 0.203,
+    "Propreté": 0.31,
+    "Service en vol": 0.193,
+    "Emplacement porte": -0.321,
+    "Repas et boissons": -0.059,
+    "Horaires pratiques": -0.48
+  },
+  "coef_std_contexte": {
+    "Class_Eco": -0.452,
+    "Class_Eco Plus": -0.311,
+    "Type_of_Travel_Personal Travel": -1.515,
+    "Customer_Type_disloyal Customer": -1.055,
+    "Gender_Male": -0.008,
+    "Age": -0.035,
+    "Dist": 0.018,
+    "dep_delay": 0.164,
+    "arr_delay": -0.309
+  },
+  "auc_gb_notes_plus_contexte": 0.995,
+  "auc_contexte_seul": 0.848,
+  "facteurs_par_segment_coef_std": {
+    "Voyage professionnel": {
+      "n": 71655,
+      "taux_sat_pct": 58.3,
+      "top5": {
+        "Embarquement en ligne": 1.26,
+        "Service à bord": 0.54,
+        "Divertissement à bord": 0.46,
+        "Enregistrement": 0.46,
+        "Wifi à bord": 0.44
+      }
+    },
+    "Voyage personnel": {
+      "n": 32249,
+      "taux_sat_pct": 10.2,
+      "top5": {
+        "Wifi à bord": 2.96,
+        "Confort du siège": 0.05,
+        "Propreté": 0.03,
+        "Gestion bagages": 0.03,
+        "Service en vol": 0.02
+      }
+    },
+    "Business (classe)": {
+      "n": 49665,
+      "taux_sat_pct": 69.4,
+      "top5": {
+        "Embarquement en ligne": 1.04,
+        "Espace jambes": 0.56,
+        "Wifi à bord": 0.49,
+        "Service à bord": 0.46,
+        "Enregistrement": 0.39
+      }
+    },
+    "Eco (classe)": {
+      "n": 46745,
+      "taux_sat_pct": 18.6,
+      "top5": {
+        "Wifi à bord": 2.77,
+        "Divertissement à bord": 0.24,
+        "Enregistrement": 0.16,
+        "Service à bord": 0.12,
+        "Emplacement porte": 0.08
+      }
+    }
+  },
+  "taux_sat_par_note": {
+    "Wifi à bord": {
+      "NR": 99.7,
+      "1": 32.5,
+      "2": 24.9,
+      "3": 25.1,
+      "4": 59.9,
+      "5": 99.1
+    },
+    "Horaires pratiques": {
+      "NR": 47.5,
+      "1": 48.7,
+      "2": 44.5,
+      "3": 43.8,
+      "4": 38.8,
+      "5": 42.5
+    },
+    "Réservation en ligne": {
+      "NR": 66.4,
+      "1": 37.6,
+      "2": 30.4,
+      "3": 30.8,
+      "4": 53.1,
+      "5": 73.8
+    },
+    "Emplacement porte": {
+      "NR": 100.0,
+      "1": 49.6,
+      "2": 46.1,
+      "3": 34.7,
+      "4": 38.9,
+      "5": 57.2
+    },
+    "Repas et boissons": {
+      "NR": 46.7,
+      "1": 20.0,
+      "2": 38.8,
+      "3": 39.6,
+      "4": 52.5,
+      "5": 54.9
+    },
+    "Embarquement en ligne": {
+      "NR": 55.6,
+      "1": 13.8,
+      "2": 11.5,
+      "3": 13.6,
+      "4": 62.3,
+      "5": 87.2
+    },
+    "Confort du siège": {
+      "NR": 0.0,
+      "1": 22.3,
+      "2": 22.4,
+      "3": 21.2,
+      "4": 56.1,
+      "5": 65.0
+    },
+    "Divertissement à bord": {
+      "NR": 0.0,
+      "1": 14.0,
+      "2": 21.3,
+      "3": 27.0,
+      "4": 61.2,
+      "5": 64.8
+    },
+    "Service à bord": {
+      "NR": 0.0,
+      "1": 19.4,
+      "2": 25.6,
+      "3": 31.6,
+      "4": 53.7,
+      "5": 64.2
+    },
+    "Espace jambes": {
+      "NR": 35.2,
+      "1": 20.3,
+      "2": 27.5,
+      "3": 27.2,
+      "4": 58.2,
+      "5": 61.4
+    },
+    "Gestion bagages": {
+      "1": 29.8,
+      "2": 29.5,
+      "3": 23.6,
+      "4": 48.1,
+      "5": 61.3
+    },
+    "Enregistrement": {
+      "NR": 0.0,
+      "1": 23.9,
+      "2": 25.2,
+      "3": 44.8,
+      "4": 46.0,
+      "5": 61.0
+    },
+    "Service en vol": {
+      "NR": 0.0,
+      "1": 29.0,
+      "2": 30.1,
+      "3": 23.9,
+      "4": 47.8,
+      "5": 61.0
+    },
+    "Propreté": {
+      "NR": 0.0,
+      "1": 19.6,
+      "2": 21.3,
+      "3": 43.2,
+      "4": 53.5,
+      "5": 60.9
+    }
+  },
+  "suppression_horaires_seul": {
+    "Horaires pratiques": -0.098
+  },
+  "suppression_horaires_wifi": {
+    "Horaires pratiques": -0.626,
+    "Wifi à bord": 1.175
+  },
+  "suppression_horaires_wifi_resa": {
+    "Horaires pratiques": -0.687,
+    "Wifi à bord": 1.069,
+    "Réservation en ligne": 0.196
+  },
+  "corr_spearman_horaires_wifi_resa": {
+    "horaires-wifi": 0.37,
+    "horaires-resa": 0.51,
+    "wifi-resa": 0.69
+  },
+  "age_dans_Business_x_voyagepro": {
+    "<18": 49.4,
+    "18-25": 66.3,
+    "26-35": 60.5,
+    "36-45": 73.1,
+    "46-55": 82.3,
+    "56-65": 79.0,
+    ">65": 38.0
+  },
+  "age_dans_Eco_x_voyageperso": {
+    "<18": 10.7,
+    "18-25": 10.0,
+    "26-35": 10.5,
+    "36-45": 9.9,
+    "46-55": 10.1,
+    "56-65": 10.3,
+    ">65": 9.3
+  },
+  "part_business_par_distance_pct": {
+    "<500": 31.3,
+    "500-1000": 31.0,
+    "1000-2000": 53.4,
+    "2000-3000": 81.9,
+    ">3000": 99.3
+  },
+  "distance_dans_Business_x_voyagepro": {
+    "<500": 63.3,
+    "500-1000": 68.1,
+    "1000-2000": 73.8,
+    "2000-3000": 76.1,
+    ">3000": 77.9
+  },
+  "distance_dans_Eco_x_voyageperso": {
+    "<500": 10.2,
+    "500-1000": 10.0,
+    "1000-2000": 10.5,
+    "2000-3000": 10.9,
+    ">3000": 11.1
+  },
+  "retard_dans_Business_x_voyagepro": {
+    "0 min": 75.5,
+    "1-15": 70.0,
+    "16-60": 64.9,
+    "61-120": 65.4,
+    ">120": 64.4
+  },
+  "retard_dans_Eco_x_voyageperso": {
+    "0 min": 13.1,
+    "1-15": 8.6,
+    "16-60": 4.2,
+    "61-120": 4.7,
+    ">120": 5.5
+  },
+  "enfants_moins_18_Business_x_voyagepro_taux_pct": 49.4,
+  "n_Business_x_voyagepro": 47508,
+  "n_Eco_x_voyageperso": 26488,
+  "taux_sat_par_nb_notes_4plus": {
+    "(-1, 2]": 7.3,
+    "(2, 5]": 17.4,
+    "(5, 8]": 45.4,
+    "(8, 11]": 69.3,
+    "(11, 14]": 91.1
+  }
+}
