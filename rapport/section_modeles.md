@@ -4,7 +4,7 @@
 
 Le modèle sert au moment où l'avion se pose. À cet instant, la compagnie ne dispose pas des réponses à l'enquête, et la plupart des passagers n'y répondront jamais. Il ne peut donc s'appuyer que sur six informations déjà connues : le statut de fidélité, le motif du voyage (professionnel ou personnel), la classe, la distance du vol, le retard au départ et le retard à l'arrivée.
 
-Les quatorze notes de l'enquête sont exclues : elles n'existent pas encore à l'arrivée. Le genre est exclu parce que rien ne justifie de s'en servir pour cibler un passager. L'âge a été testé à part : il n'apporte presque rien, et son usage poserait problème pour les enfants (voir la section Protection des données).
+Les quatorze notes de l'enquête sont exclues : elles n'existent pas encore à l'arrivée. Le genre est exclu parce que rien ne justifie de s'en servir pour cibler un passager. L'âge a été testé à part : il n'apporte presque rien (+2 € pour 1 000 passagers), et son usage poserait problème pour les enfants (voir la section Protection des données).
 
 ## Comment on a comparé les méthodes sans toucher au test
 
@@ -47,7 +47,13 @@ Pour 1 000 passagers à l'arrivée, on en aborde 100 :
 - environ **96 sont vraiment mécontents** : 96 × 60 € = +5 760 € ;
 - environ **4 sont en fait satisfaits** : 4 × −40 € = −160 €. C'est une erreur peu grave : un passager content reçoit une attention de plus.
 
-Environ 470 passagers mécontents ne seront pas abordés. Ce n'est pas une erreur du modèle : c'est la limite de capacité des équipes. Le modèle sert à bien choisir les 100 que l'on peut voir.
+Environ 470 passagers mécontents ne seront pas abordés. Ce n'est pas une erreur du modèle : c'est la limite de capacité des équipes. Le modèle sert à bien choisir les 100 que l'on peut voir. Si les équipes pouvaient aborder plus de monde, le gain continuerait d'augmenter : environ 8 100 € à 15 % de capacité et 10 400 € à 20 %.
+
+## Contrôles complémentaires
+
+- **Mineurs.** L'âge n'est pas dans le modèle, mais les mineurs représentent 18 % des passagers signalés, contre 7,6 % de l'ensemble des passagers. Nous recommandons de **les garder** dans la liste. Les mineurs signalés sont aussi souvent vraiment mécontents que les adultes (95,3 % contre 95,7 %), et les retirer ferait perdre environ 100 € pour 1 000 passagers. Surtout, 72 % d'entre eux voyagent pour raisons personnelles, le plus souvent en famille : recueillir l'avis d'un enfant mécontent, c'est s'adresser à une famille qui décidera ensemble de revoler ou non avec la compagnie. Nos données ne disent pas qui voyage avec qui, donc ce gain ne peut pas être mesuré, seulement estimé. Si une approche sauve 2 billets au lieu d'un, le gain passe à environ 7 300 € pour 1 000 passagers, et à environ 9 000 € pour 3 billets (contre 5 567 € avec l'hypothèse de base). Condition indispensable : l'équipe s'adresse **toujours à l'adulte qui accompagne l'enfant**, jamais à l'enfant seul (voir la section Protection des données).
+- **Âge.** Ajouter l'âge au modèle ne rapporte que 2 € de plus pour 1 000 passagers : il reste exclu.
+- **Motif du voyage.** C'est l'information la plus utile au modèle. Sans elle, le gain tombe à 4 824 € pour 1 000 passagers (−751 €), en dessous de la règle simple. Avant tout déploiement, il faut vérifier que la compagnie connaît ce motif de façon fiable à l'atterrissage (réservation via une entreprise, programme de fidélité).
 
 ## Résultat final sur le test (lu une seule fois)
 

@@ -84,10 +84,12 @@ def regression_logistique():
     return Pipeline([("prep", prep), ("clf", LogisticRegression(max_iter=1000))])
 
 
-def arbre_decision():
+def arbre_decision(categorielles=CATEGORIELLES, numeriques=NUMERIQUES):
+    """Arbre retenu. Les arguments ne servent qu'aux variantes de contrôle
+    (avec l'âge, sans le motif du voyage)."""
     prep = ColumnTransformer([
-        ("cat", OneHotEncoder(), CATEGORIELLES),
-        ("num", "passthrough", NUMERIQUES),
+        ("cat", OneHotEncoder(), categorielles),
+        ("num", "passthrough", numeriques),
     ], verbose_feature_names_out=False)
     clf = DecisionTreeClassifier(max_depth=4, min_samples_leaf=50, random_state=config.SEED)
     return Pipeline([("prep", prep), ("clf", clf)])
@@ -149,9 +151,9 @@ def plis(y, n_plis=5):
     return list(cv.split(np.zeros(len(y)), y))
 
 
-def scores_hors_pli(df, y, fabrique, decoupage):
+def scores_hors_pli(df, y, fabrique, decoupage, colonnes=config.FEATURES_MODELE):
     """Chaque passager est noté par un modèle qui ne l'a pas vu à l'entraînement."""
-    X = df[config.FEATURES_MODELE]
+    X = df[colonnes]
     score = np.zeros(len(y))
     for app, val in decoupage:
         modele = fabrique().fit(X.iloc[app], y[app])
