@@ -7,6 +7,7 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 from sklearn.compose import ColumnTransformer
+from sklearn.ensemble import HistGradientBoostingClassifier
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import roc_auc_score
 from sklearn.model_selection import StratifiedKFold
@@ -46,6 +47,7 @@ def _charger(relatif):
     df["Arrival Delay in Minutes"] = df["Arrival Delay in Minutes"].fillna(
         df["Departure Delay in Minutes"]
     )
+    assert df[config.FEATURES_MODELE].notna().all().all(), "Valeurs manquantes dans les variables du modèle"
     y = (df[config.TARGET] == CLASSE_A_DETECTER).astype(int).to_numpy()
     return df, y
 
@@ -71,13 +73,23 @@ REGLES = {
     "Plus gros retard à l'arrivée": lambda df: df["Arrival Delay in Minutes"].astype(float),
 }
 
+# Résumé de l'arbre en 3 questions, pour l'expliquer à la direction.
+# Le groupe visé couvre environ 9,8 % des passagers.
+NOM_REGLE_3_QUESTIONS = "Règle 3 questions (hors Business, voyage perso, retard > 5 min)"
+
+
+def regle_3_questions(df):
+    return ((df["Class"] != "Business")
+            & (df["Type of Travel"] == "Personal Travel")
+            & (df["Arrival Delay in Minutes"] > 5)).astype(float)
+
 
 # ---------------------------------------------------------------------------
 # Modèles
 # ---------------------------------------------------------------------------
 def regression_logistique():
     prep = ColumnTransformer([
-        ("cat", OneHotEncoder(drop="first"), CATEGORIELLES),
+        ("cat", OneHotEncoder(drop="first", handle_unknown="ignore"), CATEGORIELLES),
         # Retards et distance très étalés : on les compresse avec un log
         ("num", Pipeline([("log", FunctionTransformer(np.log1p)), ("std", StandardScaler())]), NUMERIQUES),
     ])
@@ -88,16 +100,28 @@ def arbre_decision(categorielles=CATEGORIELLES, numeriques=NUMERIQUES):
     """Arbre retenu. Les arguments ne servent qu'aux variantes de contrôle
     (avec l'âge, sans le motif du voyage)."""
     prep = ColumnTransformer([
-        ("cat", OneHotEncoder(), categorielles),
+        ("cat", OneHotEncoder(handle_unknown="ignore"), categorielles),
         ("num", "passthrough", numeriques),
     ], verbose_feature_names_out=False)
     clf = DecisionTreeClassifier(max_depth=4, min_samples_leaf=50, random_state=config.SEED)
     return Pipeline([("prep", prep), ("clf", clf)])
 
 
+def gradient_boosting():
+    """Modèle « boîte noire » de comparaison : vérifie qu'on ne perd rien
+    à choisir un modèle explicable."""
+    prep = ColumnTransformer([
+        ("cat", OneHotEncoder(handle_unknown="ignore"), CATEGORIELLES),
+        ("num", "passthrough", NUMERIQUES),
+    ], verbose_feature_names_out=False)
+    clf = HistGradientBoostingClassifier(random_state=config.SEED)
+    return Pipeline([("prep", prep), ("clf", clf)])
+
+
 MODELES = {
     "Régression logistique": regression_logistique,
     "Arbre de décision": arbre_decision,
+    "Gradient boosting": gradient_boosting,
 }
 
 # Choix fait dans 04_modeles, à partir du train uniquement
@@ -108,21 +132,28 @@ REGLE_DE_REFERENCE = "Voyage personnel"
 # ---------------------------------------------------------------------------
 # Métriques
 # ---------------------------------------------------------------------------
-def selection_top(score, capacite=config.CAPACITE):
+def selection_top(score, capacite=config.CAPACITE, ex_aequo="tirage"):
     """Part de chaque passager dans les `capacite` % les plus à risque.
-    Les ex aequo à la limite se partagent les places restantes."""
+
+    L'arbre donne le même score à tout un groupe : la limite des 10 % tombe
+    souvent au milieu d'une case.
+    - ex_aequo="tirage"  : on complète par tirage au sort dans cette case
+      (résultat moyen du tirage) ;
+    - ex_aequo="exclure" : on s'arrête à la dernière case entière.
+    """
     score = np.asarray(score, dtype=float)
     k = capacite * len(score)
     seuil = np.sort(score)[::-1][int(np.ceil(k)) - 1]
     au_dessus = score > seuil
     egaux = score == seuil
     poids = au_dessus.astype(float)
-    poids[egaux] = (k - au_dessus.sum()) / egaux.sum()
+    if ex_aequo == "tirage":
+        poids[egaux] = (k - au_dessus.sum()) / egaux.sum()
     return poids
 
 
-def evaluer(y, score, capacite=config.CAPACITE):
-    poids = selection_top(score, capacite)
+def evaluer(y, score, capacite=config.CAPACITE, ex_aequo="tirage"):
+    poids = selection_top(score, capacite, ex_aequo)
     abordes = poids.sum()
     bons = (poids * y).sum()
     precision = bons / abordes
@@ -184,11 +215,14 @@ def dessiner_arbre(pipeline, chemin=None, capacite=config.CAPACITE):
     taux = arbre.value[:, 0, 1] / arbre.value[:, 0, :].sum(axis=1)
     feuille = arbre.children_left == -1
 
-    # Cases visées quand on aborde les `capacite` passagers les plus à risque
-    prioritaires, cumul = set(), 0.0
+    # Cases visées quand on aborde les `capacite` passagers les plus à risque.
+    # La dernière case n'est souvent prise qu'en partie (tirage au sort).
+    prioritaires, en_partie, cumul = set(), {}, 0.0
     for n in sorted(np.flatnonzero(feuille), key=lambda n: -taux[n]):
         if cumul >= capacite:
             break
+        if cumul + part[n] > capacite:
+            en_partie[n] = (capacite - cumul) / part[n]
         prioritaires.add(n)
         cumul += part[n]
 
@@ -251,7 +285,9 @@ def dessiner_arbre(pipeline, chemin=None, capacite=config.CAPACITE):
             ax.text(x, y - 0.18, f"{part[n]:.1%} des passagers".replace(".", ",").replace("%", " %"),
                     ha="center", va="center", fontsize=9, color=texte, zorder=3)
             if prio:
-                ax.text(x + LARG / 2 + 0.15, y, "◀ À aborder\n    en priorité", ha="left", va="center",
+                etiquette = ("◀ À aborder\n    en priorité" if n not in en_partie else
+                             f"◀ En partie : {en_partie[n]:.0%}\n    tirés au sort".replace("%", " %"))
+                ax.text(x + LARG / 2 + 0.15, y, etiquette, ha="left", va="center",
                         fontsize=9, fontweight="bold", color=ENCRE, zorder=3)
         else:
             ax.add_patch(FancyBboxPatch(
@@ -283,7 +319,9 @@ def dessiner_arbre(pipeline, chemin=None, capacite=config.CAPACITE):
     barre.outline.set_visible(False)
     barre.ax.tick_params(labelsize=9, colors=ENCRE_2, length=0)
     fig.text(0.02, 0.04, f"Encadré noir : cases visées quand les équipes abordent les {capacite:.0%} "
-             "passagers les plus à risque.".replace("%", " %"), fontsize=9.5, color=ENCRE_2)
+             "passagers les plus à risque "
+             "(la dernière case n'est prise qu'en partie, par tirage au sort).".replace("%", " %"),
+             fontsize=9.5, color=ENCRE_2)
 
     fig.subplots_adjust(left=0.01, right=0.99, top=0.91, bottom=0.09)
     if chemin:
@@ -309,6 +347,7 @@ def scores_hors_pli(df, y, fabrique, decoupage, colonnes=config.FEATURES_MODELE)
     return score
 
 
-def cv(y, score, decoupage):
-    """Résultats pli par pli à partir des scores hors pli."""
-    return pd.DataFrame([evaluer(y[val], score[val]) for _, val in decoupage])
+def cv(y, score, decoupage, capacite=config.CAPACITE, ex_aequo="tirage"):
+    """Résultats pli par pli à partir des scores hors pli.
+    Les chiffres annoncés sont toujours la moyenne de ces 5 plis."""
+    return pd.DataFrame([evaluer(y[val], score[val], capacite, ex_aequo) for _, val in decoupage])
