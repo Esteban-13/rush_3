@@ -156,7 +156,7 @@ QUESTIONS_OUI_NON = {
     "Customer Type_disloyal Customer": "Client non fidèle ?",
 }
 QUESTIONS_SEUIL = {
-    "Flight Distance": ("Distance du vol\nsupérieure à", ""),  # unité non précisée par le sujet
+    "Flight Distance": ("Distance du vol\nsupérieure à", "km"),
     "Departure Delay in Minutes": ("Retard au départ\nde plus de", "min"),
     "Arrival Delay in Minutes": ("Retard à l'arrivée\nde plus de", "min"),
     "Age": ("Plus de", "ans"),
