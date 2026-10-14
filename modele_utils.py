@@ -144,6 +144,154 @@ def gain_parfait_par_1000(y, capacite=config.CAPACITE):
 
 
 # ---------------------------------------------------------------------------
+# Dessin de l'arbre (en français, pour le rapport et les slides)
+# ---------------------------------------------------------------------------
+QUESTIONS_OUI_NON = {
+    "Class_Business": "Classe Business ?",
+    "Class_Eco": "Classe Eco ?",
+    "Class_Eco Plus": "Classe Eco Plus ?",
+    "Type of Travel_Business travel": "Voyage professionnel ?",
+    "Type of Travel_Personal Travel": "Voyage personnel ?",
+    "Customer Type_Loyal Customer": "Client fidèle ?",
+    "Customer Type_disloyal Customer": "Client non fidèle ?",
+}
+QUESTIONS_SEUIL = {
+    "Flight Distance": ("Distance du vol\nsupérieure à", ""),  # unité non précisée par le sujet
+    "Departure Delay in Minutes": ("Retard au départ\nde plus de", "min"),
+    "Arrival Delay in Minutes": ("Retard à l'arrivée\nde plus de", "min"),
+    "Age": ("Plus de", "ans"),
+}
+
+
+def _question(variable, seuil):
+    if variable in QUESTIONS_OUI_NON:
+        return QUESTIONS_OUI_NON[variable]
+    debut, unite = QUESTIONS_SEUIL[variable]
+    return f"{debut} {int(np.floor(seuil))}{' ' + unite if unite else ''} ?"
+
+
+def dessiner_arbre(pipeline, chemin=None, capacite=config.CAPACITE):
+    """Arbre lu de gauche à droite : « Oui » vers le haut, « Non » vers le bas.
+    La couleur des cases finales indique la part de passagers mécontents."""
+    import matplotlib.pyplot as plt
+    from matplotlib.colors import LinearSegmentedColormap
+    from matplotlib.patches import FancyBboxPatch
+
+    arbre = pipeline.named_steps["clf"].tree_
+    noms = pipeline.named_steps["prep"].get_feature_names_out()
+    total = arbre.n_node_samples[0]
+    part = arbre.n_node_samples / total
+    taux = arbre.value[:, 0, 1] / arbre.value[:, 0, :].sum(axis=1)
+    feuille = arbre.children_left == -1
+
+    # Cases visées quand on aborde les `capacite` passagers les plus à risque
+    prioritaires, cumul = set(), 0.0
+    for n in sorted(np.flatnonzero(feuille), key=lambda n: -taux[n]):
+        if cumul >= capacite:
+            break
+        prioritaires.add(n)
+        cumul += part[n]
+
+    # Placement : profondeur en x, feuilles empilées en y (« Oui » au-dessus)
+    pos, profondeur_max = {}, 0
+    rang = iter(range(feuille.sum()))
+
+    def placer(n, prof):
+        nonlocal profondeur_max
+        profondeur_max = max(profondeur_max, prof)
+        if feuille[n]:
+            pos[n] = (prof, -next(rang))
+        else:
+            oui, non = arbre.children_right[n], arbre.children_left[n]
+            placer(oui, prof + 1)
+            placer(non, prof + 1)
+            pos[n] = (prof, (pos[oui][1] + pos[non][1]) / 2)
+
+    placer(0, 0)
+
+    ENCRE, ENCRE_2, TRAIT, FOND = "#0b0b0b", "#52514e", "#c3c2b7", "#fcfcfb"
+    bleus = LinearSegmentedColormap.from_list(
+        "bleus", ["#cde2fb", "#86b6ef", "#3987e5", "#1c5cab", "#0d366b"])
+    COL, LARG, HAUT = 4.1, 2.9, 0.78   # écart entre colonnes, taille des cases
+
+    n_feuilles = feuille.sum()
+    fig, ax = plt.subplots(figsize=(17, 0.72 * n_feuilles + 2.6))
+    fig.patch.set_facecolor(FOND)
+    ax.set_facecolor(FOND)
+
+    def x_case(n):
+        return pos[n][0] * COL
+
+    # Liens coudés + étiquettes Oui / Non
+    for n in pos:
+        if feuille[n]:
+            continue
+        x0, y0 = x_case(n) + LARG / 2, pos[n][1]
+        for enfant, mot in [(arbre.children_right[n], "Oui"), (arbre.children_left[n], "Non")]:
+            x1, y1 = x_case(enfant) - LARG / 2, pos[enfant][1]
+            xm = (x0 + x1) / 2
+            ax.plot([x0, xm, xm, x1], [y0, y0, y1, y1], color=TRAIT, lw=1.6, zorder=1,
+                    solid_joinstyle="round")
+            ax.text(xm + 0.08, y1 + 0.12, mot, fontsize=9.5, color=ENCRE_2,
+                    fontweight="bold", va="bottom", ha="left")
+
+    # Cases
+    for n, (prof, y) in pos.items():
+        x = x_case(n)
+        if feuille[n]:
+            couleur = bleus(taux[n])
+            r, g, b, _ = couleur
+            texte = "white" if 0.2126 * r + 0.7152 * g + 0.0722 * b < 0.45 else ENCRE
+            prio = n in prioritaires
+            ax.add_patch(FancyBboxPatch(
+                (x - LARG / 2, y - HAUT / 2), LARG, HAUT, boxstyle="round,pad=0.02,rounding_size=0.12",
+                facecolor=couleur, edgecolor=ENCRE if prio else "none", lw=2.2 if prio else 0, zorder=2))
+            ax.text(x, y + 0.12, f"{taux[n]:.0%} mécontents".replace("%", " %"),
+                    ha="center", va="center", fontsize=11, fontweight="bold", color=texte, zorder=3)
+            ax.text(x, y - 0.18, f"{part[n]:.1%} des passagers".replace(".", ",").replace("%", " %"),
+                    ha="center", va="center", fontsize=9, color=texte, zorder=3)
+            if prio:
+                ax.text(x + LARG / 2 + 0.15, y, "◀ À aborder\n    en priorité", ha="left", va="center",
+                        fontsize=9, fontweight="bold", color=ENCRE, zorder=3)
+        else:
+            ax.add_patch(FancyBboxPatch(
+                (x - LARG / 2, y - HAUT / 2), LARG, HAUT, boxstyle="round,pad=0.02,rounding_size=0.12",
+                facecolor="white", edgecolor=TRAIT, lw=1.2, zorder=2))
+            question = _question(noms[arbre.feature[n]], arbre.threshold[n])
+            haut = 0.1 if "\n" not in question else 0.14
+            ax.text(x, y + haut, question, ha="center", va="center", fontsize=10.5,
+                    fontweight="bold", color=ENCRE, zorder=3, linespacing=1.1)
+            ax.text(x, y - 0.27, f"{part[n]:.0%} des passagers · {taux[n]:.0%} mécontents".replace("%", " %"),
+                    ha="center", va="center", fontsize=8, color=ENCRE_2, zorder=3)
+
+    ax.set_xlim(-LARG / 2 - 0.2, profondeur_max * COL + LARG / 2 + 1.6)
+    ax.set_ylim(-(n_feuilles - 1) - 0.7, 0.7)
+    ax.axis("off")
+
+    fig.suptitle("Comment l'arbre de décision repère les passagers à aborder", x=0.02, ha="left",
+                 fontsize=16, fontweight="bold", color=ENCRE)
+    fig.text(0.02, 0.945,
+             "On suit les questions de gauche à droite : « Oui » monte, « Non » descend. "
+             "Chaque case finale donne la part de passagers mécontents dans ce groupe.",
+             fontsize=10.5, color=ENCRE_2)
+
+    # Légende des couleurs
+    cax = fig.add_axes([0.62, 0.035, 0.3, 0.018])
+    barre = fig.colorbar(plt.cm.ScalarMappable(cmap=bleus, norm=plt.Normalize(0, 100)),
+                         cax=cax, orientation="horizontal")
+    barre.set_label("Part de passagers mécontents dans la case (%)", fontsize=9.5, color=ENCRE_2)
+    barre.outline.set_visible(False)
+    barre.ax.tick_params(labelsize=9, colors=ENCRE_2, length=0)
+    fig.text(0.02, 0.04, f"Encadré noir : cases visées quand les équipes abordent les {capacite:.0%} "
+             "passagers les plus à risque.".replace("%", " %"), fontsize=9.5, color=ENCRE_2)
+
+    fig.subplots_adjust(left=0.01, right=0.99, top=0.91, bottom=0.09)
+    if chemin:
+        fig.savefig(chemin, dpi=170, facecolor=FOND)
+    return fig
+
+
+# ---------------------------------------------------------------------------
 # Validation croisée (train uniquement)
 # ---------------------------------------------------------------------------
 def plis(y, n_plis=5):
