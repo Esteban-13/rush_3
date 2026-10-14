@@ -57,13 +57,24 @@ Toutes les opérations aléatoires utilisent `SEED = 42` : deux exécutions donn
 - **Uniquement les informations connues à l'atterrissage.** Le modèle utilise 6 variables : type de client, motif du voyage, classe, distance, retard au départ, retard à l'arrivée. Les 14 notes de l'enquête (remplies après le vol) et le genre sont exclus ; l'âge est seulement testé en variante.
 - **Choix du modèle selon le gain en euros** sur les 10 % de passagers les plus à risque, et selon son explicabilité, pas seulement selon un score statistique.
 
+## Procédure du test (une seule lecture)
+
+1. Les notebooks A, 04 et 04b sont relancés et leurs chiffres validés par les trois membres.
+2. Le choix du modèle est figé dans un commit dédié : « Gel du modèle avant ouverture du test ».
+3. `05_evaluation_finale.ipynb` est exécuté une seule fois, puis commité seul avec `resultats/05_resultats_test.csv`.
+4. Aucun choix (variables, modèle, réglages) n'est modifié après cette lecture. L'historique Git permet de le vérifier.
+
 ## Résultats principaux (validation croisée)
 
 | Méthode | Précision sur les 10 % signalés | Gain pour 1 000 passagers |
 | --- | --- | --- |
 | Arbre de décision (retenu) | 95,7 % | 5 575 € |
+| Gradient boosting (comparaison « boîte noire ») | 95,7 % | 5 568 € |
 | Régression logistique | 95,3 % | 5 525 € |
+| Règle 3 questions (hors Business, voyage perso, retard > 5 min) | 94,9 % | 5 492 € |
 | Règle « voyage personnel » | 89,8 % | 4 983 € |
 | Au hasard | 56,7 % | 1 667 € |
+
+Le gradient boosting ne fait pas mieux que l'arbre : on ne perd rien à choisir un modèle explicable. La règle de 3 questions résume l'arbre et obtient 98,5 % de son gain.
 
 Résultat sur le jeu de test : voir `resultats/05_resultats_test.csv`.
