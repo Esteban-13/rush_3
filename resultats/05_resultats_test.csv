@@ -1,0 +1,4 @@
+,AUC,Précision top 10 %,Gain / 1000 passagers (€),Passagers abordés,Bons choix,Mauvais choix,Gain total (€),Gain vs règle simple (€ / 1000)
+Règle : Voyage personnel,0.7103735800612603,0.9001007810531622,5001.0078105316215,2598.0,2338.0,259.0,129906.0,0.0
+Arbre de décision,0.8454827711829894,0.9606615559868051,5606.615559868052,2598.0,2495.0,102.0,145637.0,605.6077493364301
+Modèle parfait (borne),,1.0,6000.0,,,,,998.9921894683785

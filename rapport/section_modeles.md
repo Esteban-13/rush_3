@@ -64,12 +64,13 @@ Environ 470 passagers mécontents ne seront pas abordés. Ce n'est pas une erreu
 
 ## Résultat final sur le test (lu une seule fois)
 
-| Méthode (test) | AUC | Bons choix parmi les 10 % abordés | Gain pour 1 000 passagers |
+| Méthode (test, 25 976 passagers) | AUC | Bons choix parmi les 10 % abordés | Gain pour 1 000 passagers |
 |---|---|---|---|
-| Règle « voyage personnel » | [à compléter] | [à compléter] | [à compléter] |
-| Arbre de décision | [à compléter] | [à compléter] | [à compléter] |
+| Règle « voyage personnel » | 0,710 | 90,0 % | 5 001 € |
+| **Arbre de décision** | **0,845** | **96,1 %** | **5 607 €** |
+| Modèle parfait (borne théorique) | — | 100 % | 6 000 € |
 
-[Une phrase à compléter : le résultat est proche / un peu inférieur à la validation croisée.]
+Sur ces passagers que le modèle n'avait jamais vus, le résultat est très proche de la validation croisée : 96,1 % de bons choix contre 95,7 %, et 5 607 € contre 5 575 € pour 1 000 passagers. L'arbre rapporte 606 € de plus que la règle simple pour 1 000 passagers. Sur l'ensemble du test, les équipes auraient abordé 2 598 passagers : 2 495 étaient vraiment mécontents et 102 satisfaits, pour un gain total d'environ 145 600 €. La méthode de choix, sans jamais toucher au test, était donc fiable.
 
 ## Limite à garder en tête
 
