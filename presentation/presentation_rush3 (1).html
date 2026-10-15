@@ -1,0 +1,1148 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Rush 3 · Présentation finale</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;500;600;700&family=Barlow:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout : une scène 16:9 de 1600×900 mise à l'échelle de la fenêtre. Ciel 3D derrière,
+   bandeau marine en pied de page qui porte le profil de vol (fil conducteur). */
+:root {
+  --navy: #0a1c46;
+  --navy-2: #163577;
+  --sky: #1e9bd7;
+  --sky-deep: #0f6fae;
+  --sky-pale: #e4f2fb;
+  --cloud: #ffffff;
+  --mist: #f3f8fc;
+  --ink: #0a1c46;
+  --muted: #54678d;
+  --line: #c8d9ec;
+  --amber: #f2a20c;
+  --amber-soft: #fdf1d6;
+  --f-display: "Barlow Condensed", "Arial Narrow", "Helvetica Neue", Arial, sans-serif;
+  --f-body: "Barlow", "Helvetica Neue", Arial, sans-serif;
+  --f-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  color-scheme: light;
+}
+html, body { height: 100%; }
+body { margin: 0; background: var(--navy); color: var(--ink); font-family: var(--f-body); overflow: hidden; }
+#viewport { position: fixed; inset: 0; overflow: hidden; background: var(--navy); }
+#stage {
+  position: absolute; left: 0; top: 0; width: 1600px; height: 900px;
+  transform-origin: 0 0; overflow: hidden;
+  font-size: 22px; line-height: 1.4;
+}
+
+/* ---------- Ciel ---------- */
+.sky { position: absolute; inset: 0; transition: opacity 1.6s ease; }
+.sky-low { background: linear-gradient(180deg, #bfe0f5 0%, #e3f1fb 48%, #f7fbfe 100%); }
+.sky-high { background: linear-gradient(180deg, #5fb3e6 0%, #a9d6f2 45%, #eaf5fc 100%); opacity: 0; }
+#gl { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+
+/* ---------- Bandeau haut ---------- */
+.hud-top {
+  position: absolute; left: 0; right: 0; top: 0; height: 76px; z-index: 5;
+  display: flex; align-items: center; justify-content: space-between;
+  padding-inline: 64px; font-family: var(--f-mono); font-size: 14px;
+  letter-spacing: .12em; text-transform: uppercase; color: var(--navy);
+}
+.hud-top .brand { display: flex; align-items: center; gap: 18px; }
+.hud-top .brand b { font-weight: 500; }
+.hud-top .speaker { color: var(--muted); }
+.hud-top .speaker::before { content: ""; display: inline-block; width: 22px; height: 1px; background: var(--muted); vertical-align: middle; margin-right: 14px; }
+.instr { display: flex; gap: 28px; align-items: center; }
+.instr span { display: flex; flex-direction: column; align-items: flex-end; gap: 2px; }
+.instr small { font-size: 10.5px; color: var(--muted); letter-spacing: .16em; }
+.instr strong { font-weight: 500; font-size: 16px; letter-spacing: .08em; }
+
+/* ---------- Pied de page : profil de vol ---------- */
+.hud-foot {
+  position: absolute; left: 0; right: 0; bottom: 0; height: 104px; z-index: 5;
+  background: var(--navy); color: var(--cloud);
+  display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 32px;
+  padding-inline: 64px 40px;
+}
+.hud-foot svg { width: 100%; height: 84px; overflow: visible; }
+.fp-base { fill: none; stroke: rgba(255,255,255,.28); stroke-width: 2; stroke-dasharray: 2 7; stroke-linecap: round; }
+.fp-done { fill: none; stroke: var(--amber); stroke-width: 2.5; stroke-linejoin: round; stroke-linecap: round; }
+.fp-stop { fill: var(--navy); stroke: rgba(255,255,255,.55); stroke-width: 1.5; }
+.fp-stop.past { fill: var(--amber); stroke: var(--amber); }
+.fp-label { fill: rgba(255,255,255,.55); font-family: var(--f-mono); font-size: 10.5px; letter-spacing: .14em; text-transform: uppercase; }
+.fp-label.on { fill: var(--cloud); }
+.fp-plane path { fill: var(--cloud); }
+.fp-plane, .fp-label { pointer-events: none; }
+.fp-hit { fill: transparent; cursor: pointer; pointer-events: all; outline: none; }
+.fp-stop { transition: stroke .2s, fill .2s; }
+.fp-stop.hover { stroke: var(--amber); stroke-width: 3; }
+.fp-hit:focus-visible { fill: rgba(242,162,12,.18); }
+.nav { display: flex; align-items: center; gap: 10px; font-family: var(--f-mono); font-size: 14px; letter-spacing: .08em; }
+.nav button {
+  width: 44px; height: 44px; border-radius: 50%; border: 1px solid rgba(255,255,255,.35);
+  background: transparent; color: var(--cloud); font: inherit; font-size: 18px; cursor: pointer;
+  display: grid; place-items: center; transition: background .2s, border-color .2s;
+}
+.nav button:hover { background: rgba(255,255,255,.1); border-color: var(--cloud); }
+.nav button:focus-visible { outline: 2px solid var(--amber); outline-offset: 3px; }
+.nav .count { min-width: 76px; text-align: center; font-variant-numeric: tabular-nums; }
+
+/* ---------- Slides ---------- */
+.slide {
+  position: absolute; inset: 0; z-index: 3; padding: 128px 96px 150px;
+  opacity: 0; visibility: hidden; transition: opacity .7s ease, visibility .7s;
+}
+.slide.active { opacity: 1; visibility: visible; }
+.eyebrow {
+  font-family: var(--f-mono); font-size: 14px; letter-spacing: .16em; text-transform: uppercase;
+  color: var(--sky-deep); display: flex; align-items: center; gap: 14px; margin: 0 0 18px;
+}
+.eyebrow i { font-style: normal; color: var(--amber); }
+.title {
+  font-family: var(--f-display); font-weight: 600; font-size: 62px; line-height: 1.02;
+  letter-spacing: -.005em; margin: 0; max-width: 1020px; text-wrap: balance; color: var(--navy);
+}
+.lead { font-size: 23px; color: var(--muted); max-width: 640px; margin: 18px 0 0; }
+.num { font-family: var(--f-display); font-weight: 600; font-variant-numeric: tabular-nums; letter-spacing: -.01em; color: var(--navy); }
+.small { font-size: 17px; color: var(--muted); }
+.mono { font-family: var(--f-mono); letter-spacing: .06em; }
+.note {
+  font-family: var(--f-mono); font-size: 13.5px; letter-spacing: .06em; color: var(--muted);
+  display: flex; gap: 12px; align-items: baseline;
+}
+.note::before { content: "—"; color: var(--amber); }
+
+/* apparition en cascade, depuis un état visible au repos */
+@keyframes rise { from { opacity: 0; transform: translateY(26px); } to { opacity: 1; transform: none; } }
+.slide.active .rise { animation: rise .9s cubic-bezier(.2,.7,.2,1) both; animation-delay: var(--d, 0s); }
+
+/* ---------- 0 · Titre ---------- */
+.s-title { padding-top: 168px; }
+.s-title h1 {
+  font-family: var(--f-display); font-weight: 700; font-size: 88px; line-height: .95;
+  margin: 0; color: var(--navy); max-width: 740px; text-wrap: balance; letter-spacing: -.01em;
+}
+.s-title h1 em { font-style: normal; color: var(--sky-deep); }
+.s-title .lead { max-width: 560px; margin-top: 28px; }
+.title-band {
+  position: absolute; left: 0; right: 0; bottom: 104px; height: 128px; background: var(--navy);
+  display: grid; grid-template-columns: 1.3fr 1fr 1fr; align-items: center; gap: 40px;
+  padding-inline: 96px; color: var(--cloud); border-bottom: 1px solid rgba(255,255,255,.14);
+}
+.title-band div { display: flex; flex-direction: column; gap: 6px; }
+.title-band small { font-family: var(--f-mono); font-size: 12px; letter-spacing: .16em; text-transform: uppercase; color: rgba(255,255,255,.6); }
+.title-band strong { font-family: var(--f-display); font-weight: 500; font-size: 30px; letter-spacing: .01em; }
+
+/* ---------- 1 · Embarquement ---------- */
+.s-boarding .grid { display: grid; grid-template-columns: 1.15fr 1fr; gap: 72px; margin-top: 40px; align-items: start; }
+.hero-stat .num { font-size: 210px; line-height: .85; display: block; color: var(--navy); }
+.hero-stat .num sup { font-size: 90px; vertical-align: top; margin-left: 6px; color: var(--sky-deep); }
+.hero-stat p { font-size: 25px; color: var(--muted); margin: 18px 0 0; max-width: 560px; }
+.missions { display: flex; flex-direction: column; gap: 22px; margin-top: 112px; }
+.mission {
+  background: var(--cloud); border-left: 4px solid var(--sky); padding: 22px 28px;
+  box-shadow: 0 18px 40px -28px rgba(10,28,70,.45);
+}
+.mission:nth-child(2) { border-left-color: var(--amber); }
+.mission small { font-family: var(--f-mono); font-size: 13px; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); }
+.mission h3 { font-family: var(--f-display); font-weight: 600; font-size: 32px; margin: 6px 0 4px; line-height: 1.05; }
+.mission p { margin: 0; font-size: 18px; color: var(--muted); }
+
+/* ---------- 2 · Carte d'embarquement ---------- */
+.pass {
+  margin-top: 38px; display: grid; grid-template-columns: 1fr 34px 1.05fr; background: var(--cloud);
+  border-radius: 18px; box-shadow: 0 30px 60px -36px rgba(10,28,70,.55); overflow: hidden;
+}
+.pass-part { padding: 30px 38px 32px; }
+.pass-head { display: flex; justify-content: space-between; align-items: baseline; border-bottom: 1px solid var(--line); padding-bottom: 14px; margin-bottom: 20px; }
+.pass-head strong { font-family: var(--f-display); font-weight: 600; font-size: 28px; }
+.pass-head span { font-family: var(--f-mono); font-size: 12.5px; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); }
+.pass-perf { background: radial-gradient(circle at 50% 0, var(--sky-pale) 15px, transparent 16px) top/34px 34px no-repeat,
+  radial-gradient(circle at 50% 100%, var(--sky-pale) 15px, transparent 16px) bottom/34px 34px no-repeat,
+  linear-gradient(var(--line), var(--line)) center/2px 100% no-repeat; }
+.fields { display: grid; grid-template-columns: 1fr 1fr; gap: 16px 28px; }
+.field small { display: block; font-family: var(--f-mono); font-size: 11.5px; letter-spacing: .16em; text-transform: uppercase; color: var(--muted); }
+.field b { font-family: var(--f-display); font-weight: 600; font-size: 27px; color: var(--navy); }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip { font-size: 15.5px; padding: 6px 12px; border: 1px solid var(--line); border-radius: 999px; color: var(--muted); background: var(--mist); }
+.pass-part.after .pass-head strong { color: var(--muted); }
+.excluded { margin-top: 20px; display: flex; gap: 10px; align-items: center; font-size: 16px; color: var(--muted); }
+.excluded s { text-decoration-color: var(--amber); text-decoration-thickness: 2px; }
+.s-data .foot { margin-top: 26px; display: flex; gap: 40px; }
+
+/* ---------- 3 · Profil ---------- */
+.s-profile .wrap { display: grid; grid-template-columns: 1.35fr 1fr; gap: 64px; margin-top: 34px; align-items: end; }
+.bars { position: relative; display: grid; grid-template-columns: repeat(6, 1fr); gap: 18px; height: 400px; align-items: end; padding-bottom: 64px; border-bottom: 1px solid var(--line); }
+.bars .avg { position: absolute; left: -8px; right: -8px; border-top: 2px dashed var(--amber); }
+.bcol { position: relative; height: 100%; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; }
+.bcol .bar { width: 100%; height: calc(var(--v) * 1%); background: linear-gradient(180deg, var(--sky) 0%, var(--sky-deep) 100%); transform-origin: bottom; transform: scaleY(0); transition: transform 1.1s cubic-bezier(.2,.7,.2,1); transition-delay: var(--d, 0s); border-radius: 4px 4px 0 0; }
+.bcol.perso .bar { background: linear-gradient(180deg, #8fc6ea 0%, #6aa9d6 100%); }
+.slide.active .bcol .bar { transform: scaleY(1); }
+.bcol .val { font-family: var(--f-display); font-weight: 600; font-size: 34px; margin-bottom: 6px; }
+.bcol .lab { position: absolute; bottom: -60px; left: -6px; right: -6px; text-align: center; font-size: 15px; line-height: 1.2; color: var(--muted); }
+.bcol .lab b { display: block; color: var(--navy); font-weight: 600; }
+.avg-tag { position: absolute; right: 0; transform: translateY(-110%); font-family: var(--f-mono); font-size: 12.5px; letter-spacing: .1em; color: var(--amber); background: var(--sky-pale); padding: 0 6px; }
+.callouts { display: flex; flex-direction: column; gap: 26px; padding-bottom: 70px; }
+.callout .num { font-size: 92px; line-height: .9; }
+.callout p { margin: 6px 0 0; font-size: 19px; color: var(--muted); }
+
+/* ---------- 4 · Leviers ---------- */
+.s-levers .wrap { display: grid; grid-template-columns: 1fr 1.08fr; gap: 64px; margin-top: 30px; }
+.lever { display: grid; grid-template-columns: 178px 1fr; gap: 22px; align-items: start; padding: 22px 0; border-top: 1px solid var(--line); }
+.lever:last-of-type { border-bottom: 1px solid var(--line); }
+.lever .num { font-size: 64px; line-height: .95; color: var(--sky-deep); white-space: nowrap; }
+.lever h3 { font-family: var(--f-display); font-weight: 600; font-size: 34px; margin: 0 0 4px; line-height: 1.05; }
+.lever p { margin: 0; font-size: 18px; color: var(--muted); }
+.chain { margin-top: 24px; display: flex; align-items: center; gap: 18px; font-size: 18px; color: var(--muted); }
+.chain .num { font-size: 44px; color: var(--navy); white-space: nowrap; }
+.matrix { background: var(--cloud); padding: 26px 30px; border-radius: 14px; box-shadow: 0 26px 50px -34px rgba(10,28,70,.5); align-self: start; margin-top: 18px; }
+.matrix h4 { margin: 0 0 14px; font-family: var(--f-mono); font-weight: 500; font-size: 13px; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); }
+.matrix table { width: 100%; border-collapse: collapse; font-size: 17px; }
+.matrix th { font-family: var(--f-mono); font-weight: 500; font-size: 12px; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); text-align: left; padding: 0 8px 10px 0; }
+.matrix td { padding: 11px 8px 11px 0; border-top: 1px solid var(--line); vertical-align: top; }
+.matrix td:first-child { font-weight: 600; color: var(--navy); }
+.yes { color: var(--sky-deep); font-weight: 600; }
+.no { color: var(--muted); }
+.test { color: #b57404; font-weight: 600; }
+
+/* ---------- 5 · Méthodes ---------- */
+.s-methods .wrap { display: grid; grid-template-columns: 1.6fr 1fr; gap: 64px; margin-top: 26px; }
+.hbars { display: flex; flex-direction: column; gap: 8px; }
+.hrow { display: grid; grid-template-columns: 250px 1fr 120px; align-items: center; gap: 18px; font-size: 17.5px; }
+.hrow .name { color: var(--muted); text-align: right; line-height: 1.15; }
+.hrow .track { height: 26px; background: rgba(255,255,255,.65); border-radius: 3px; position: relative; overflow: hidden; }
+.hrow .fill { position: absolute; inset: 0 auto 0 0; width: calc(var(--v) / 6000 * 100%); background: var(--sky); transform-origin: left; transform: scaleX(0); transition: transform 1.2s cubic-bezier(.2,.7,.2,1); transition-delay: var(--d, 0s); border-radius: 3px; }
+.slide.active .hrow .fill { transform: scaleX(1); }
+.hrow .v { font-family: var(--f-display); font-weight: 600; font-size: 26px; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.hrow.rule .fill { background: #9cc4e2; }
+.hrow.bound .fill { background: repeating-linear-gradient(135deg, var(--line) 0 6px, transparent 6px 12px); }
+.hrow.pick .name { color: var(--navy); font-weight: 600; }
+.hrow.pick .fill { background: var(--amber); }
+.hrow.pick .v { color: var(--navy); }
+.axis { display: grid; grid-template-columns: 250px 1fr 120px; gap: 18px; font-family: var(--f-mono); font-size: 12px; color: var(--muted); letter-spacing: .08em; }
+.axis div { display: flex; justify-content: space-between; }
+.side-facts { display: flex; flex-direction: column; gap: 22px; }
+.fact { padding: 20px 24px; background: var(--cloud); border-radius: 12px; box-shadow: 0 22px 44px -32px rgba(10,28,70,.5); }
+.fact .num { font-size: 56px; line-height: .95; }
+.fact .num.amber { color: #c98200; }
+.fact p { margin: 4px 0 0; font-size: 17.5px; color: var(--muted); }
+
+/* ---------- 6 · Les 3 questions ---------- */
+.glide { margin-top: 26px; display: flex; flex-direction: column; gap: 10px; max-width: 1180px; }
+.gstep { display: grid; grid-template-columns: 380px 1fr; gap: 26px; align-items: center; }
+.gq { font-family: var(--f-display); font-weight: 600; font-size: 27px; line-height: 1.05; color: var(--navy); text-align: right; }
+.gline { display: flex; align-items: center; gap: 18px; }
+.gline .rate { font-family: var(--f-mono); font-size: 15px; letter-spacing: .06em; color: var(--muted); white-space: nowrap; }
+.gline .rate b { font-family: var(--f-display); font-weight: 600; font-size: 28px; color: var(--navy); letter-spacing: 0; margin-right: 6px; }
+.gq small { display: block; font-family: var(--f-mono); font-weight: 400; font-size: 12px; letter-spacing: .14em; color: var(--muted); text-transform: uppercase; margin-bottom: 4px; }
+.gbar { height: 62px; width: calc(var(--w) * .82%); min-width: 104px; flex: none; background: var(--navy); color: var(--cloud); border-radius: 0 6px 6px 0;
+  display: flex; align-items: center; justify-content: space-between; padding-inline: 22px; transform-origin: left; transform: scaleX(.02); transition: transform 1s cubic-bezier(.2,.7,.2,1); transition-delay: var(--d, 0s); }
+.slide.active .gbar { transform: scaleX(1); }
+.gbar .share { font-family: var(--f-display); font-weight: 600; font-size: 34px; }
+.gstep:nth-child(2) .gbar { background: var(--navy-2); }
+.gstep:nth-child(3) .gbar { background: var(--sky-deep); }
+.gstep:nth-child(4) .gbar { background: var(--amber); color: var(--navy); }
+.glide-foot { margin-top: 24px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 40px; max-width: 1180px; }
+.glide-foot div { border-top: 2px solid var(--navy); padding-top: 12px; }
+.glide-foot .num { font-size: 52px; line-height: 1; }
+.glide-foot p { margin: 4px 0 0; font-size: 17px; color: var(--muted); }
+
+/* ---------- 7 · 1 000 passagers ---------- */
+.s-landing .wrap { display: grid; grid-template-columns: 820px 1fr; gap: 56px; margin-top: 26px; align-items: start; }
+.dots { width: 820px; height: 420px; display: block; }
+.dots circle { fill: #d7e6f3; transition: fill .5s ease, stroke .5s ease, r .4s ease; }
+.dots.show-unhappy circle.u { fill: #8fbfe3; }
+.dots.show-flag circle.f { fill: var(--amber); }
+.dots.show-flag circle.fs { fill: var(--cloud); stroke: var(--amber); stroke-width: 2.4; }
+.legend { display: flex; gap: 26px; margin-top: 14px; font-size: 15.5px; color: var(--muted); flex-wrap: wrap; }
+.legend span { display: flex; align-items: center; gap: 8px; }
+.legend i { width: 13px; height: 13px; border-radius: 50%; display: inline-block; }
+.result { display: flex; flex-direction: column; gap: 18px; }
+.result .big .num { font-size: 120px; line-height: .86; display: block; }
+.result .big p { margin: 6px 0 0; font-size: 19px; color: var(--muted); }
+.split { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.split div { background: var(--cloud); border-radius: 12px; padding: 16px 18px; box-shadow: 0 20px 40px -30px rgba(10,28,70,.5); }
+.split .num { font-size: 48px; line-height: 1; }
+.split small { display: block; font-size: 15.5px; color: var(--muted); }
+.split .pos { color: var(--sky-deep); }
+.split .neg { color: #b57404; }
+
+/* ---------- 8 · Euros ---------- */
+.equation { margin-top: 30px; display: flex; align-items: center; gap: 22px; flex-wrap: wrap; }
+.eq-item { background: var(--cloud); border-radius: 12px; padding: 14px 22px; box-shadow: 0 20px 40px -30px rgba(10,28,70,.5); min-width: 150px; }
+.eq-item .num { font-size: 46px; line-height: 1; }
+.eq-item small { display: block; font-size: 14.5px; color: var(--muted); line-height: 1.2; }
+.eq-op { font-family: var(--f-display); font-size: 42px; color: var(--muted); }
+.eq-item.res { background: var(--navy); }
+.eq-item.res .num, .eq-item.res small { color: var(--cloud); }
+.s-money .wrap { display: grid; grid-template-columns: 1.25fr 1fr; gap: 64px; margin-top: 38px; }
+.scen { display: flex; flex-direction: column; gap: 10px; }
+.srow { display: grid; grid-template-columns: 270px 1fr; gap: 16px; align-items: center; font-size: 17.5px; }
+.srow .name { color: var(--muted); line-height: 1.15; }
+.srow .name b { color: var(--navy); font-weight: 600; display: block; }
+.strack { position: relative; height: 40px; }
+.strack::before { content: ""; position: absolute; left: 25%; top: -6px; bottom: -6px; border-left: 1.5px solid var(--navy); }
+.sfill { position: absolute; top: 4px; bottom: 4px; left: 25%; width: calc(var(--v) / 11000 * 75%); background: var(--sky-deep); transform-origin: left; transform: scaleX(0); transition: transform 1.1s cubic-bezier(.2,.7,.2,1); transition-delay: var(--d, 0s); border-radius: 0 3px 3px 0; }
+.sfill.negative { left: auto; right: 75%; width: calc(var(--v) / 11000 * 75%); background: #c98200; transform-origin: right; border-radius: 3px 0 0 3px; }
+.slide.active .sfill { transform: scaleX(1); }
+.sval { position: absolute; top: 50%; transform: translateY(-50%); font-family: var(--f-display); font-weight: 600; font-size: 25px; white-space: nowrap; }
+.srow.dir .name b::after { content: " · retenu"; color: var(--amber); font-family: var(--f-mono); font-weight: 400; font-size: 12px; letter-spacing: .1em; text-transform: uppercase; }
+.capacity { display: flex; flex-direction: column; gap: 14px; }
+.cap { display: grid; grid-template-columns: 90px 1fr; align-items: baseline; gap: 14px; border-top: 1px solid var(--line); padding-top: 12px; }
+.cap .k { font-family: var(--f-mono); font-size: 15px; color: var(--muted); letter-spacing: .08em; }
+.cap .num { font-size: 50px; line-height: 1; }
+
+/* ---------- 9 · Protection des données ---------- */
+.s-privacy .wrap { display: grid; grid-template-columns: 1fr 470px; gap: 72px; margin-top: 30px; }
+.conds { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 18px 36px; counter-reset: c; }
+.conds li { counter-increment: c; display: grid; grid-template-columns: 40px 1fr; gap: 6px; font-size: 18px; color: var(--muted); }
+.conds li::before { content: counter(c, decimal-leading-zero); font-family: var(--f-mono); font-size: 14px; color: var(--sky-deep); padding-top: 4px; }
+.conds b { display: block; color: var(--navy); font-family: var(--f-display); font-weight: 600; font-size: 25px; line-height: 1.1; }
+.kids { margin-top: 26px; padding: 18px 22px; background: var(--amber-soft); border-left: 4px solid var(--amber); font-size: 18px; color: var(--navy); }
+.kids b { font-family: var(--f-display); font-weight: 600; font-size: 24px; display: block; }
+.device { background: var(--navy); border-radius: 30px; padding: 16px; box-shadow: 0 40px 70px -40px rgba(10,28,70,.8); }
+.screen { background: var(--cloud); border-radius: 18px; padding: 26px 26px 22px; }
+.screen .top { display: flex; justify-content: space-between; align-items: center; font-family: var(--f-mono); font-size: 12.5px; letter-spacing: .12em; color: var(--muted); text-transform: uppercase; }
+.screen .tag { display: inline-flex; align-items: center; gap: 8px; margin-top: 18px; background: var(--amber); color: var(--navy); font-family: var(--f-display); font-weight: 600; font-size: 25px; padding: 6px 16px; border-radius: 6px; }
+.screen dl { margin: 18px 0 0; display: grid; grid-template-columns: 110px 1fr; gap: 10px 12px; font-size: 18px; }
+.screen dt { color: var(--muted); font-family: var(--f-mono); font-size: 13px; letter-spacing: .1em; text-transform: uppercase; padding-top: 4px; }
+.screen dd { margin: 0; font-weight: 600; color: var(--navy); }
+.screen dd.ph { color: #8a9ab8; font-weight: 500; font-style: italic; }
+.hidden-list { margin-top: 18px; border-top: 1px dashed var(--line); padding-top: 14px; font-size: 15.5px; color: var(--muted); }
+.hidden-list s { text-decoration-color: var(--amber); text-decoration-thickness: 2px; margin-right: 12px; color: var(--navy); }
+
+/* ---------- 10 · Tableau des arrivées ---------- */
+.board { margin-top: 32px; background: var(--navy); border-radius: 14px; padding: 18px 26px 22px; color: var(--cloud); box-shadow: 0 40px 70px -44px rgba(10,28,70,.9); }
+.board-head, .board-row { display: grid; grid-template-columns: 80px 1fr 300px 170px; gap: 24px; align-items: center; }
+.board-head { font-family: var(--f-mono); font-size: 12px; letter-spacing: .16em; text-transform: uppercase; color: rgba(255,255,255,.55); padding-bottom: 12px; border-bottom: 1px solid rgba(255,255,255,.18); }
+.board-row { padding: 15px 0; border-bottom: 1px solid rgba(255,255,255,.1); }
+.board-row:last-child { border-bottom: 0; }
+.board-row .id { font-family: var(--f-mono); font-size: 20px; color: var(--amber); letter-spacing: .08em; }
+.board-row .what { font-family: var(--f-display); font-weight: 500; font-size: 29px; line-height: 1.08; }
+.board-row .why { font-size: 16.5px; color: rgba(255,255,255,.72); line-height: 1.3; }
+.status { font-family: var(--f-mono); font-size: 13px; letter-spacing: .14em; text-transform: uppercase; padding: 6px 10px; border: 1px solid rgba(255,255,255,.35); border-radius: 4px; justify-self: start; }
+.status.go { background: var(--amber); color: var(--navy); border-color: var(--amber); }
+@keyframes flap { 0% { transform: rotateX(90deg); opacity: 0; } 100% { transform: none; opacity: 1; } }
+.slide.active .board-row { animation: flap .6s cubic-bezier(.2,.7,.2,1) both; animation-delay: var(--d, 0s); transform-origin: top; }
+
+/* ---------- 11 · Fin ---------- */
+.s-end h2 { font-family: var(--f-display); font-weight: 700; font-size: 150px; line-height: .9; margin: 40px 0 0; color: var(--navy); }
+.s-end h2 em { font-style: normal; color: var(--sky-deep); }
+.s-end .recap { margin-top: 44px; display: grid; grid-template-columns: repeat(3, minmax(0, 300px)); gap: 40px; }
+.s-end .recap div { border-top: 2px solid var(--navy); padding-top: 12px; }
+.s-end .recap .num { font-size: 58px; line-height: 1; }
+.s-end .recap p { margin: 4px 0 0; font-size: 17px; color: var(--muted); }
+
+@media (prefers-reduced-motion: reduce) {
+  .slide, .sky { transition: none; }
+  .slide.active .rise, .slide.active .board-row { animation: none; }
+  .bcol .bar, .hrow .fill, .gbar, .sfill { transition: none; transform: none !important; }
+  .dots circle { transition: none; }
+}
+</style>
+</head>
+<body>
+
+<div id="viewport">
+  <div id="stage">
+    <div class="sky sky-low"></div>
+    <div class="sky sky-high" id="skyHigh"></div>
+    <canvas id="gl" aria-hidden="true"></canvas>
+
+    <header class="hud-top">
+      <div class="brand"><b>Rush 3 · Satisfaction client</b><span class="speaker" id="speaker">Toute l'équipe</span></div>
+      <div class="instr">
+        <span><small>Phase</small><strong id="phase">Porte de départ</strong></span>
+        <span><small>Altitude</small><strong id="alt">Sol</strong></span>
+      </div>
+    </header>
+
+    <!-- 0 · Titre -->
+    <section class="slide s-title active" data-phase="Porte de départ" data-alt="0" data-speaker="Esteban · Ihman · Maïlys">
+      <p class="eyebrow rise">Rush 3 <i>·</i> Satisfaction client</p>
+      <h1 class="rise" style="--d:.1s">Accueillir les passagers déçus <em>avant qu'ils ne quittent l'aéroport</em></h1>
+      <p class="lead rise" style="--d:.25s">Ce qui fait la satisfaction de nos passagers, et qui aborder dès l'atterrissage.</p>
+      <div class="title-band">
+        <div class="rise" style="--d:.4s"><small>Pour</small><strong>La Direction Expérience Client</strong></div>
+        <div class="rise" style="--d:.5s"><small>Équipe</small><strong>Esteban · Ihman · Maïlys</strong></div>
+        <div class="rise" style="--d:.6s"><small>Données</small><strong>103 904 passagers interrogés</strong></div>
+      </div>
+    </section>
+
+    <!-- 1 · Embarquement -->
+    <section class="slide s-boarding" data-phase="Embarquement" data-alt="0" data-speaker="Introduction">
+      <p class="eyebrow rise">Embarquement <i>·</i> Le constat</p>
+      <h2 class="title rise" style="--d:.08s">Plus d'un passager sur deux repart neutre ou déçu</h2>
+      <div class="grid">
+        <div class="hero-stat rise" style="--d:.2s">
+          <span class="num"><span data-count="56.7" data-dec="1">56,7</span><sup>%</sup></span>
+          <p>des passagers interrogés se disent « neutres ou insatisfaits ». Aucun n'est encore perdu, mais aucun n'a de raison de revenir.</p>
+        </div>
+        <div class="missions">
+          <div class="mission rise" style="--d:.35s"><small>Question 1 · Le budget</small><h3>Qu'est-ce qui fait vraiment la satisfaction ?</h3><p>Pour investir là où ça compte.</p></div>
+          <div class="mission rise" style="--d:.5s"><small>Question 2 · L'accueil</small><h3>Qui aborder à l'atterrissage ?</h3><p>Au plus 1 passager sur 10, avant qu'il ne quitte l'aéroport.</p></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 2 · Décollage : les données -->
+    <section class="slide s-data" data-phase="Décollage" data-alt="8000" data-speaker="Partie A · Esteban">
+      <p class="eyebrow rise">Décollage <i>·</i> Les données</p>
+      <h2 class="title rise" style="--d:.08s">Ce que la compagnie sait au moment où l'avion se pose</h2>
+      <div class="pass rise" style="--d:.2s">
+        <div class="pass-part">
+          <div class="pass-head"><strong>Connu à l'atterrissage</strong><span>Utilisé par le modèle</span></div>
+          <div class="fields">
+            <div class="field"><small>Fidélité</small><b>Client fidèle ou non</b></div>
+            <div class="field"><small>Motif</small><b>Pro ou perso</b></div>
+            <div class="field"><small>Classe</small><b>Eco · Eco Plus · Business</b></div>
+            <div class="field"><small>Vol</small><b>Distance</b></div>
+            <div class="field"><small>Départ</small><b>Retard en minutes</b></div>
+            <div class="field"><small>Arrivée</small><b>Retard en minutes</b></div>
+          </div>
+        </div>
+        <div class="pass-perf"></div>
+        <div class="pass-part after">
+          <div class="pass-head"><strong>Connu seulement après l'enquête</strong><span>14 notes de 1 à 5</span></div>
+          <div class="chips">
+            <span class="chip">Embarquement en ligne</span><span class="chip">Wifi à bord</span><span class="chip">Confort du siège</span>
+            <span class="chip">Divertissement</span><span class="chip">Service à bord</span><span class="chip">Espace jambes</span>
+            <span class="chip">Propreté</span><span class="chip">Bagages</span><span class="chip">Service en vol</span>
+            <span class="chip">Réservation en ligne</span><span class="chip">Enregistrement</span><span class="chip">Repas</span>
+            <span class="chip">Emplacement porte</span><span class="chip">Horaires</span>
+          </div>
+          <div class="excluded">Exclus par choix : <s>genre</s> <s>âge</s></div>
+        </div>
+      </div>
+      <div class="foot">
+        <p class="note rise" style="--d:.4s">Les notes servent à comprendre la satisfaction, jamais à prédire à l'atterrissage</p>
+        <p class="note rise" style="--d:.5s">Test de 25 976 passagers ouvert une seule fois, à la fin</p>
+      </div>
+    </section>
+
+    <!-- 3 · Montée : le profil -->
+    <section class="slide s-profile" data-phase="Montée" data-alt="22000" data-speaker="Partie A · Esteban">
+      <p class="eyebrow rise">Montée <i>·</i> Qui est satisfait</p>
+      <h2 class="title rise" style="--d:.08s">La classe et le motif du voyage pèsent lourd</h2>
+      <div class="wrap">
+        <div class="bars rise" style="--d:.15s">
+          <div class="avg" style="bottom: calc(64px + 336px * .433)"><span class="avg-tag">Moyenne 43,3 %</span></div>
+          <div class="bcol" style="--v:72.0; --d:.2s"><span class="val">72 %</span><div class="bar"></div><span class="lab"><b>Business</b>voyage pro</span></div>
+          <div class="bcol" style="--v:39.3; --d:.3s"><span class="val">39 %</span><div class="bar"></div><span class="lab"><b>Eco Plus</b>voyage pro</span></div>
+          <div class="bcol" style="--v:29.6; --d:.4s"><span class="val">30 %</span><div class="bar"></div><span class="lab"><b>Eco</b>voyage pro</span></div>
+          <div class="bcol perso" style="--v:12.2; --d:.5s"><span class="val">12 %</span><div class="bar"></div><span class="lab"><b>Business</b>voyage perso</span></div>
+          <div class="bcol perso" style="--v:10.2; --d:.6s"><span class="val">10 %</span><div class="bar"></div><span class="lab"><b>Eco</b>voyage perso</span></div>
+          <div class="bcol perso" style="--v:8.7; --d:.7s"><span class="val">9 %</span><div class="bar"></div><span class="lab"><b>Eco Plus</b>voyage perso</span></div>
+        </div>
+        <div class="callouts">
+          <div class="callout rise" style="--d:.4s"><span class="num">× 8</span><p>Un voyageur pro en Business est huit fois plus souvent satisfait qu'un voyageur perso en Eco Plus.</p></div>
+          <div class="callout rise" style="--d:.55s"><span class="num">10 %</span><p>Seulement un voyageur perso sur dix est satisfait, quelle que soit sa classe.</p></div>
+          <p class="note rise" style="--d:.7s">Le profil ne se change pas, mais il dit où regarder</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 4 · Croisière : les leviers -->
+    <section class="slide s-levers" data-phase="Croisière" data-alt="35000" data-speaker="Partie A · Esteban">
+      <p class="eyebrow rise">Croisière <i>·</i> Où investir</p>
+      <h2 class="title rise" style="--d:.08s">Deux leviers dominent : l'embarquement en ligne et le wifi</h2>
+      <div class="wrap">
+        <div>
+          <div class="lever rise" style="--d:.2s"><span class="num">n° 1</span><div><h3>Embarquement en ligne</h3><p>Le facteur le plus lié à la satisfaction, pour l'ensemble des passagers.</p></div></div>
+          <div class="lever rise" style="--d:.32s"><span class="num">2,8/5</span><div><h3>Wifi à bord</h3><p>Le service le moins bien noté (43 % de notes 1 ou 2), et presque le seul levier en Eco pour les voyages personnels.</p></div></div>
+          <div class="chain rise" style="--d:.45s"><span class="num">91 %</span><span>de satisfaits quand au moins 12 services sur 14 sont bien notés, contre 7 % quand 2 au plus le sont.</span></div>
+        </div>
+        <div class="matrix rise" style="--d:.3s">
+          <h4>Associé, actionnable, causal ?</h4>
+          <table>
+            <thead><tr><th>Facteur</th><th>Associé</th><th>Actionnable</th><th>Causal</th></tr></thead>
+            <tbody>
+              <tr><td>Embarquement en ligne</td><td class="yes">Fort</td><td class="yes">Oui</td><td class="test">À tester</td></tr>
+              <tr><td>Wifi à bord</td><td class="yes">Fort</td><td class="yes">Oui</td><td class="test">À tester</td></tr>
+              <tr><td>Classe, motif du voyage</td><td class="yes">Fort</td><td class="no">Non, c'est le profil</td><td class="no">Non</td></tr>
+              <tr><td>Horaires pratiques</td><td class="no">Trompeur</td><td class="no">Peu</td><td class="no">Non</td></tr>
+            </tbody>
+          </table>
+          <p class="note" style="margin-top:16px">Une enquête montre des liens, pas des causes : un test terrain sur quelques vols le vérifiera</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 5 · Descente : les méthodes -->
+    <section class="slide s-methods" data-phase="Début de descente" data-alt="24000" data-speaker="Partie B · Ihman">
+      <p class="eyebrow rise">Début de descente <i>·</i> Qui aborder</p>
+      <h2 class="title rise" style="--d:.08s">Un modèle simple bat la meilleure règle</h2>
+      <div class="wrap">
+        <div>
+          <div class="hbars">
+            <div class="hrow bound rise" style="--v:6000; --d:.15s"><span class="name">Modèle parfait (borne)</span><div class="track"><div class="fill"></div></div><span class="v">6 000 €</span></div>
+            <div class="hrow pick rise" style="--v:5575; --d:.2s"><span class="name">Arbre de décision · retenu</span><div class="track"><div class="fill"></div></div><span class="v" data-count="5575">5 575 €</span></div>
+            <div class="hrow rise" style="--v:5568; --d:.25s"><span class="name">Gradient boosting</span><div class="track"><div class="fill"></div></div><span class="v">5 568 €</span></div>
+            <div class="hrow rise" style="--v:5525; --d:.3s"><span class="name">Régression logistique</span><div class="track"><div class="fill"></div></div><span class="v">5 525 €</span></div>
+            <div class="hrow rule rise" style="--v:4983; --d:.35s"><span class="name">Règle « voyage perso »</span><div class="track"><div class="fill"></div></div><span class="v">4 983 €</span></div>
+            <div class="hrow rule rise" style="--v:4056; --d:.4s"><span class="name">Règle « classe Eco / Eco Plus »</span><div class="track"><div class="fill"></div></div><span class="v">4 056 €</span></div>
+            <div class="hrow rule rise" style="--v:1667; --d:.45s"><span class="name">Au hasard</span><div class="track"><div class="fill"></div></div><span class="v">1 667 €</span></div>
+          </div>
+          <div class="axis" style="margin-top:10px"><span></span><div><span>0 €</span><span>Gain net pour 1 000 passagers, 100 abordés</span><span>6 000 €</span></div><span></span></div>
+        </div>
+        <div class="side-facts">
+          <div class="fact rise" style="--d:.35s"><span class="num amber">+592 €</span><p>pour 1 000 passagers face à la meilleure règle simple.</p></div>
+          <div class="fact rise" style="--d:.45s"><span class="num">= </span><p>Le gradient boosting, une boîte noire, ne fait pas mieux : on ne perd rien à choisir un modèle explicable.</p></div>
+          <p class="note rise" style="--d:.55s">Validation croisée en 5 plis sur le train</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 6 · Approche : 3 questions -->
+    <section class="slide s-glide" data-phase="Approche" data-alt="6000" data-speaker="Partie B · Ihman">
+      <p class="eyebrow rise">Approche <i>·</i> Le modèle retenu</p>
+      <h2 class="title rise" style="--d:.08s">L'arbre de décision tient en trois questions</h2>
+      <div class="glide">
+        <div class="gstep rise" style="--d:.15s"><div class="gq"><small>Au départ</small>Tous les passagers</div><div class="gline"><div class="gbar" style="--w:100; --d:.2s"><span class="share">100 %</span></div><span class="rate"><b>57 %</b>mécontents</span></div></div>
+        <div class="gstep rise" style="--d:.3s"><div class="gq"><small>Question 1</small>Pas en Business ?</div><div class="gline"><div class="gbar" style="--w:52; --d:.4s"><span class="share">52 %</span></div><span class="rate"><b>81 %</b>mécontents</span></div></div>
+        <div class="gstep rise" style="--d:.45s"><div class="gq"><small>Question 2</small>Voyage personnel ?</div><div class="gline"><div class="gbar" style="--w:29; --d:.6s"><span class="share">29 %</span></div><span class="rate"><b>90 %</b>mécontents</span></div></div>
+        <div class="gstep rise" style="--d:.6s"><div class="gq"><small>Question 3</small>Retard à l'arrivée de plus de 5 min ?</div><div class="gline"><div class="gbar" style="--w:9.8; --d:.8s"><span class="share">9,8 %</span></div><span class="rate"><b>95 %</b>mécontents</span></div></div>
+      </div>
+      <div class="glide-foot">
+        <div class="rise" style="--d:.8s"><span class="num">9,8 %</span><p>des passagers : presque exactement la capacité des équipes.</p></div>
+        <div class="rise" style="--d:.9s"><span class="num">95 %</span><p>sont vraiment mécontents dans ce groupe.</p></div>
+        <div class="rise" style="--d:1s"><span class="num">98,5 %</span><p>du gain de l'arbre complet, avec ces trois questions seulement.</p></div>
+      </div>
+    </section>
+
+    <!-- 7 · Atterrissage : 1 000 passagers -->
+    <section class="slide s-landing" data-phase="Atterrissage" data-alt="0" data-speaker="Partie B · Ihman">
+      <p class="eyebrow rise">Atterrissage <i>·</i> Résultat sur le test</p>
+      <h2 class="title rise" style="--d:.08s">Sur 1 000 passagers à l'arrivée, 100 sont accueillis en priorité</h2>
+      <div class="wrap">
+        <div class="rise" style="--d:.15s">
+          <svg class="dots" id="dots" viewBox="0 0 820 420" role="img" aria-label="1 000 passagers : 561 mécontents, 100 abordés dont 96 vraiment mécontents et 4 satisfaits"></svg>
+          <div class="legend">
+            <span><i style="background:#d7e6f3"></i>Satisfait</span>
+            <span><i style="background:#8fbfe3"></i>Mécontent (561)</span>
+            <span><i style="background:var(--amber)"></i>Abordé et mécontent (96)</span>
+            <span><i style="background:var(--cloud); box-shadow: inset 0 0 0 2.4px var(--amber)"></i>Abordé mais satisfait (4)</span>
+          </div>
+        </div>
+        <div class="result">
+          <div class="big rise" style="--d:.3s"><span class="num"><span data-count="5607">5 607</span> €</span><p>de gain net pour 1 000 passagers, sur 25 976 passagers jamais vus par le modèle.</p></div>
+          <div class="split rise" style="--d:.45s">
+            <div><span class="num pos">96</span><small>bons choix, +60 € chacun</small></div>
+            <div><span class="num neg">4</span><small>passagers satisfaits, −40 € chacun</small></div>
+          </div>
+          <div class="split rise" style="--d:.55s">
+            <div><span class="num">+606 €</span><small>face à la règle « voyage perso »</small></div>
+            <div><span class="num">0,845</span><small>AUC, contre 0,848 en validation croisée</small></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 8 · Roulage : les euros -->
+    <section class="slide s-money" data-phase="Roulage" data-alt="0" data-speaker="Partie C · Maïlys">
+      <p class="eyebrow rise">Roulage <i>·</i> Ce que ça rapporte</p>
+      <h2 class="title rise" style="--d:.08s">Chaque bon choix rapporte 60 €, tant que les hypothèses tiennent</h2>
+      <div class="equation rise" style="--d:.15s">
+        <div class="eq-item"><span class="num">1/3</span><small>des déçus ne reviennent pas</small></div><span class="eq-op">×</span>
+        <div class="eq-item"><span class="num">600 €</span><small>de revenus futurs</small></div><span class="eq-op">×</span>
+        <div class="eq-item"><span class="num">1/2</span><small>ramenés par l'approche</small></div><span class="eq-op">−</span>
+        <div class="eq-item"><span class="num">40 €</span><small>coût d'une approche</small></div><span class="eq-op">=</span>
+        <div class="eq-item res"><span class="num">+60 €</span><small>par passager déçu abordé</small></div>
+      </div>
+      <div class="wrap">
+        <div class="scen">
+          <p class="note rise" style="--d:.25s">Gain de l'arbre pour 1 000 passagers selon les hypothèses</p>
+          <div class="srow rise" style="--d:.3s"><span class="name"><b>Optimiste</b>1 sur 2 part, 1 sur 2 ramené</span><div class="strack"><div class="sfill" style="--v:10362; --d:.4s"></div><span class="sval" style="left:calc(25% + 10362 / 11000 * 75% - 108px); color:var(--cloud)">10 362 €</span></div></div>
+          <div class="srow dir rise" style="--d:.38s"><span class="name"><b>Direction</b>1 sur 3 part, 1 sur 2 ramené</span><div class="strack"><div class="sfill" style="--v:5575; --d:.5s; background:var(--amber)"></div><span class="sval" style="left:calc(25% + 5575 / 11000 * 75% + 12px)">5 575 €</span></div></div>
+          <div class="srow rise" style="--d:.46s"><span class="name"><b>Récupération faible</b>1 sur 3 part, 1 sur 4 ramené</span><div class="strack"><div class="sfill" style="--v:787; --d:.6s"></div><span class="sval" style="left:calc(25% + 787 / 11000 * 75% + 12px)">787 €</span></div></div>
+          <div class="srow rise" style="--d:.54s"><span class="name"><b>Pessimiste</b>1 sur 5 part, 1 sur 4 ramené</span><div class="strack"><div class="sfill negative" style="--v:1128; --d:.7s"></div><span class="sval" style="left:calc(25% + 12px); color:#b57404">−1 128 €</span></div></div>
+          <p class="note rise" style="--d:.65s">Ces deux taux sont des estimations : le test terrain doit les mesurer</p>
+        </div>
+        <div class="capacity">
+          <p class="note rise" style="--d:.3s">Et si les équipes abordaient plus de monde ?</p>
+          <div class="cap rise" style="--d:.4s"><span class="k">10 %</span><span class="num">5 575 €</span></div>
+          <div class="cap rise" style="--d:.5s"><span class="k">15 %</span><span class="num">8 102 €</span></div>
+          <div class="cap rise" style="--d:.6s"><span class="k">20 %</span><span class="num">10 442 €</span></div>
+          <p class="small rise" style="--d:.7s; margin:4px 0 0">Seuil de rentabilité : 40 % de bons choix. Le modèle en fait 96 %.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 9 · Porte : protection des données -->
+    <section class="slide s-privacy" data-phase="Arrivée à la porte" data-alt="0" data-speaker="Partie C · Maïlys">
+      <p class="eyebrow rise">Arrivée à la porte <i>·</i> Protection des données</p>
+      <h2 class="title rise" style="--d:.08s">Un accueil en plus, jamais une étiquette</h2>
+      <div class="wrap">
+        <div>
+          <ol class="conds">
+            <li class="rise" style="--d:.15s"><span><b>Intérêt légitime</b>avec une mise en balance écrite</span></li>
+            <li class="rise" style="--d:.22s"><span><b>Analyse d'impact</b>avant tout déploiement</span></li>
+            <li class="rise" style="--d:.29s"><span><b>Passagers informés</b>et droit d'opposition en une case</span></li>
+            <li class="rise" style="--d:.36s"><span><b>Aucun effet négatif</b>ni refus, ni tarif, ni note au dossier</span></li>
+            <li class="rise" style="--d:.43s"><span><b>Liste effacée le soir</b>seuls des totaux sont gardés</span></li>
+            <li class="rise" style="--d:.5s"><span><b>Un humain décide</b>l'agent choisit d'aborder ou non</span></li>
+          </ol>
+          <div class="kids rise" style="--d:.6s"><b>Enfants : 18 % des passagers signalés</b>On s'adresse toujours à l'adulte qui les accompagne. Un mineur non accompagné n'est jamais abordé dans ce cadre.</div>
+        </div>
+        <div class="device rise" style="--d:.3s" aria-label="Exemple d'écran vu par un agent">
+          <div class="screen">
+            <div class="top"><span>Arrivées · Terminal 2</span><span>14:25</span></div>
+            <span class="tag">Accueil prioritaire</span>
+            <dl>
+              <dt>Passager</dt><dd class="ph">Nom du passager</dd>
+              <dt>Vol</dt><dd class="ph">[numéro]</dd>
+              <dt>Porte</dt><dd class="ph">[arrivée]</dd>
+            </dl>
+            <div class="hidden-list">L'agent ne voit pas :<br><s>score</s><s>raison</s><s>âge</s><s>« mécontent »</s></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 10 · Destination : recommandations -->
+    <section class="slide s-reco" data-phase="Destination" data-alt="0" data-speaker="Toute l'équipe">
+      <p class="eyebrow rise">Destination <i>·</i> Nos recommandations</p>
+      <h2 class="title rise" style="--d:.08s">Cinq décisions pour la direction</h2>
+      <div class="board" role="table" aria-label="Recommandations">
+        <div class="board-head" role="row"><span>Réf.</span><span>Action</span><span>Pourquoi</span><span>Statut</span></div>
+        <div class="board-row" role="row" style="--d:.2s"><span class="id">R1</span><span class="what">Investir dans l'embarquement en ligne et le wifi</span><span class="why">Les deux leviers les plus forts. Le wifi d'abord en Eco.</span><span class="status go">À financer</span></div>
+        <div class="board-row" role="row" style="--d:.32s"><span class="id">R2</span><span class="what">Tester l'accueil prioritaire 3 mois sur quelques vols</span><span class="why">Avec un groupe témoin, pour mesurer le vrai taux de retour.</span><span class="status go">À lancer</span></div>
+        <div class="board-row" role="row" style="--d:.44s"><span class="id">R3</span><span class="what">Généraliser si le test terrain confirme le gain</span><span class="why">Avec la règle des 3 questions et les conditions de protection des données.</span><span class="status">Si concluant</span></div>
+        <div class="board-row" role="row" style="--d:.56s"><span class="id">R4</span><span class="what">Aborder 15 à 20 % des passagers</span><span class="why">Le gain monte à 8 100 € puis 10 400 € pour 1 000 passagers.</span><span class="status">Si concluant</span></div>
+        <div class="board-row" role="row" style="--d:.68s"><span class="id">R5</span><span class="what">Fiabiliser le motif du voyage</span><span class="why">Sans lui, le modèle perd 751 € pour 1 000 passagers.</span><span class="status">À vérifier</span></div>
+      </div>
+    </section>
+
+    <!-- 11 · Fin -->
+    <section class="slide s-end" data-phase="Arrivée" data-alt="0" data-speaker="Esteban · Ihman · Maïlys">
+      <p class="eyebrow rise">Arrivée <i>·</i> Merci de votre attention</p>
+      <h2 class="rise" style="--d:.08s">Des <em>questions</em> ?</h2>
+      <div class="recap">
+        <div class="rise" style="--d:.25s"><span class="num">2 leviers</span><p>Embarquement en ligne et wifi à bord.</p></div>
+        <div class="rise" style="--d:.35s"><span class="num">3 questions</span><p>Pour repérer les passagers à accueillir dès l'atterrissage.</p></div>
+        <div class="rise" style="--d:.45s"><span class="num">5 607 €</span><p>Pour 1 000 passagers, à confirmer par un test terrain sur tous les passagers.</p></div>
+      </div>
+    </section>
+
+    <footer class="hud-foot">
+      <svg id="path" viewBox="0 0 1300 84" preserveAspectRatio="none" role="group" aria-label="Aller directement à une slide"></svg>
+      <div class="nav">
+        <button type="button" id="prev" aria-label="Slide précédente">←</button>
+        <span class="count" id="count">01 / 12</span>
+        <button type="button" id="next" aria-label="Slide suivante">→</button>
+        <button type="button" id="fs" aria-label="Plein écran" title="Plein écran (F)">⤢</button>
+      </div>
+    </footer>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+(function () {
+  const stage = document.getElementById('stage');
+  const slides = [...document.querySelectorAll('.slide')];
+  const N = slides.length;
+  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  let current = 0;
+
+  /* ---------- mise à l'échelle 16:9 ---------- */
+  function fit() {
+    const vw = window.innerWidth, vh = window.innerHeight;
+    const s = Math.min(vw / 1600, vh / 900);
+    stage.style.transform = `translate(${(vw - 1600 * s) / 2}px, ${(vh - 900 * s) / 2}px) scale(${s})`;
+  }
+  window.addEventListener('resize', fit); fit();
+
+  /* ---------- profil de vol (pied de page) ---------- */
+  const svg = document.getElementById('path');
+  const NS = 'http://www.w3.org/2000/svg';
+  const alts = slides.map(s => +s.dataset.alt);
+  const W = 1300, X0 = 20, X1 = 1280, YG = 64, YT = 14;
+  const pts = alts.map((a, i) => [X0 + i * (X1 - X0) / (N - 1), YG - (a / 35000) * (YG - YT)]);
+  const d = pts.map((p, i) => (i ? 'L' : 'M') + p[0].toFixed(1) + ' ' + p[1].toFixed(1)).join(' ');
+  const mk = (tag, attrs) => { const e = document.createElementNS(NS, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); svg.appendChild(e); return e; };
+  mk('path', { d, class: 'fp-base' });
+  const done = mk('path', { d, class: 'fp-done' });
+  const segLen = pts.slice(1).map((p, i) => Math.hypot(p[0] - pts[i][0], p[1] - pts[i][1]));
+  const cum = [0]; segLen.forEach(l => cum.push(cum[cum.length - 1] + l));
+  done.style.strokeDasharray = cum[N - 1] + ' ' + cum[N - 1];
+  const stops = pts.map(p => mk('circle', { cx: p[0], cy: p[1], r: 4.5, class: 'fp-stop' }));
+  // zones cliquables : une colonne par slide sur toute la hauteur de la frise
+  const gap = (X1 - X0) / (N - 1);
+  pts.forEach((p, i) => {
+    const titre = (slides[i].querySelector('.title, h1, h2') || {}).textContent || '';
+    const hit = mk('rect', { x: p[0] - gap / 2, y: 0, width: gap, height: 84, class: 'fp-hit', tabindex: 0, role: 'button', 'aria-label': 'Slide ' + (i + 1) + ' : ' + titre.trim() });
+    const tip = document.createElementNS(NS, 'title'); tip.textContent = 'Slide ' + (i + 1) + ' · ' + titre.trim(); hit.appendChild(tip);
+    hit.addEventListener('click', () => go(i));
+    hit.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.stopPropagation(); go(i); } });
+    hit.addEventListener('mouseenter', () => { stops[i].classList.add('hover'); stops[i].setAttribute('r', 7); });
+    hit.addEventListener('mouseleave', () => { stops[i].classList.remove('hover'); stops[i].setAttribute('r', 4.5); });
+  });
+  // libellés des grandes phases du vol
+  const phases = [['Porte', 0], ['Décollage', 2], ['Croisière', 4], ['Descente', 5], ['Approche', 6], ['Atterrissage', 7], ['Porte', 9], ['Arrivée', 11]];
+  const labels = phases.map(([t, i]) => { const e = mk('text', { x: pts[i][0], y: 82, 'text-anchor': i === 0 ? 'start' : i === N - 1 ? 'end' : 'middle', class: 'fp-label' }); e.textContent = t; e.dataset.i = i; return e; });
+  const plane = mk('g', { class: 'fp-plane' });
+  const pp = document.createElementNS(NS, 'path');
+  pp.setAttribute('d', 'M14 0 L4 -2.2 L-3 -11 L-6.5 -11 L-2 -2.2 L-9 -2 L-12 -6 L-14.5 -6 L-12.5 0 L-14.5 6 L-12 6 L-9 2 L-2 2.2 L-6.5 11 L-3 11 L4 2.2 Z');
+  plane.appendChild(pp);
+
+  let pathPos = 0, pathAnim = null;
+  function placePlane(p) {
+    const i = Math.min(N - 2, Math.floor(p)), f = p - i;
+    const a = pts[i], b = pts[i + 1];
+    const x = a[0] + (b[0] - a[0]) * f, y = a[1] + (b[1] - a[1]) * f;
+    const ang = Math.atan2(b[1] - a[1], b[0] - a[0]) * 180 / Math.PI;
+    // le SVG est étiré en largeur : on compense pour garder l'avion proportionné
+    const sx = svg.getBoundingClientRect().width / W / (stage.getBoundingClientRect().width / 1600) || 1;
+    plane.setAttribute('transform', `translate(${x} ${y - 1}) scale(${1 / sx} 1) rotate(${ang * sx})`);
+    done.style.strokeDashoffset = cum[N - 1] - (cum[i] + segLen[i] * f);
+    stops.forEach((s, k) => s.classList.toggle('past', k <= p + 1e-6));
+  }
+  function movePlane(to) {
+    cancelAnimationFrame(pathAnim);
+    const from = pathPos, t0 = performance.now(), dur = reduce ? 0 : 1100;
+    const step = now => {
+      const k = dur ? Math.min(1, (now - t0) / dur) : 1;
+      const e = k < .5 ? 2 * k * k : 1 - Math.pow(-2 * k + 2, 2) / 2;
+      pathPos = from + (to - from) * e; placePlane(pathPos);
+      if (k < 1) pathAnim = requestAnimationFrame(step);
+    };
+    pathAnim = requestAnimationFrame(step);
+  }
+
+  /* ---------- compteurs ---------- */
+  const fmt = (v, dec) => v.toLocaleString('fr-FR', { minimumFractionDigits: dec, maximumFractionDigits: dec });
+  function countUp(slide) {
+    slide.querySelectorAll('[data-count]').forEach(el => {
+      const target = +el.dataset.count, dec = +(el.dataset.dec || 0);
+      const suffix = el.classList.contains('v') ? ' €' : '';
+      if (reduce) { el.textContent = fmt(target, dec) + suffix; return; }
+      const t0 = performance.now(), dur = 1400;
+      const step = now => {
+        const k = Math.min(1, (now - t0) / dur), e = 1 - Math.pow(1 - k, 3);
+        el.textContent = fmt(target * e, dec) + suffix;
+        if (k < 1) requestAnimationFrame(step);
+      };
+      requestAnimationFrame(step);
+    });
+  }
+
+  /* ---------- 1 000 passagers ---------- */
+  const dots = document.getElementById('dots');
+  let rnd = (s => () => { s |= 0; s = s + 0x6D2B79F5 | 0; let t = Math.imul(s ^ s >>> 15, 1 | s); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; })(2026);
+  const idx = [...Array(1000).keys()].sort(() => rnd() - .5);
+  const unhappy = new Set(idx.slice(0, 561));
+  const flagged = new Set(idx.slice(0, 96));              // abordés et vraiment mécontents
+  const flaggedSat = new Set(idx.slice(561, 565));        // abordés mais satisfaits
+  for (let i = 0; i < 1000; i++) {
+    const c = document.createElementNS(NS, 'circle');
+    const col = i % 40, row = Math.floor(i / 40);
+    c.setAttribute('cx', 10 + col * 20.25); c.setAttribute('cy', 9 + row * 16.6); c.setAttribute('r', 6.4);
+    let cls = unhappy.has(i) ? 'u' : '';
+    if (flagged.has(i)) cls += ' f'; if (flaggedSat.has(i)) cls += ' fs';
+    c.setAttribute('class', cls.trim());
+    dots.appendChild(c);
+  }
+  let dotTimers = [];
+  function playDots() {
+    dotTimers.forEach(clearTimeout); dotTimers = [];
+    if (reduce) { dots.classList.add('show-unhappy', 'show-flag'); return; }
+    dots.classList.remove('show-unhappy', 'show-flag');
+    dotTimers.push(setTimeout(() => dots.classList.add('show-unhappy'), 700));
+    dotTimers.push(setTimeout(() => dots.classList.add('show-flag'), 1900));
+  }
+  dots.classList.add('show-unhappy', 'show-flag');
+
+  /* ---------- 3D : avion et nuages ---------- */
+  const gl = initGL();
+
+  /* ---------- navigation ---------- */
+  const phaseEl = document.getElementById('phase'), altEl = document.getElementById('alt');
+  const speakerEl = document.getElementById('speaker'), countEl = document.getElementById('count');
+  const skyHigh = document.getElementById('skyHigh');
+  const altText = a => a === 0 ? 'Sol' : a >= 18000 ? 'FL' + String(Math.round(a / 100)).padStart(3, '0') : a.toLocaleString('fr-FR') + ' ft';
+
+  function go(i, instant) {
+    i = Math.max(0, Math.min(N - 1, i));
+    slides[current].classList.remove('active');
+    current = i;
+    const s = slides[i];
+    // relance les animations d'entrée
+    s.querySelectorAll('.rise, .board-row').forEach(el => { el.style.animation = 'none'; void el.offsetWidth; el.style.animation = ''; });
+    s.classList.add('active');
+    phaseEl.textContent = s.dataset.phase;
+    altEl.textContent = altText(+s.dataset.alt);
+    speakerEl.textContent = s.dataset.speaker;
+    countEl.textContent = String(i + 1).padStart(2, '0') + ' / ' + String(N).padStart(2, '0');
+    skyHigh.style.opacity = Math.min(1, +s.dataset.alt / 30000);
+    labels.forEach(l => l.classList.toggle('on', +l.dataset.i <= i));
+    if (instant) { pathPos = i; placePlane(i); } else movePlane(i);
+    countUp(s);
+    if (s.classList.contains('s-landing')) playDots();
+    if (gl) gl.setPose(i, instant);
+    try { history.replaceState(null, '', '#s' + (i + 1)); } catch (e) {}
+  }
+
+  document.getElementById('next').addEventListener('click', () => go(current + 1));
+  document.getElementById('prev').addEventListener('click', () => go(current - 1));
+  document.getElementById('fs').addEventListener('click', toggleFs);
+  function toggleFs() {
+    try {
+      if (!document.fullscreenElement) document.documentElement.requestFullscreen().catch(() => {});
+      else document.exitFullscreen().catch(() => {});
+    } catch (e) {}
+  }
+  window.addEventListener('keydown', e => {
+    if (['ArrowRight', 'PageDown', ' ', 'Enter'].includes(e.key)) { e.preventDefault(); go(current + 1); }
+    else if (['ArrowLeft', 'PageUp', 'Backspace'].includes(e.key)) { e.preventDefault(); go(current - 1); }
+    else if (e.key === 'Home') go(0);
+    else if (e.key === 'End') go(N - 1);
+    else if (e.key === 'f' || e.key === 'F') toggleFs();
+  });
+  let tx = null;
+  stage.addEventListener('touchstart', e => { tx = e.touches[0].clientX; }, { passive: true });
+  stage.addEventListener('touchend', e => {
+    if (tx === null) return; const dx = e.changedTouches[0].clientX - tx; tx = null;
+    if (Math.abs(dx) > 40) go(current + (dx < 0 ? 1 : -1));
+  });
+
+  const start = /^#s(\d+)$/.exec(location.hash);
+  go(start ? +start[1] - 1 : 0, true);
+  window.addEventListener('resize', () => placePlane(pathPos));
+
+  /* ===================================================================== */
+  function initGL() {
+    if (!window.THREE) return null;
+    let renderer;
+    try {
+      renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('gl'), alpha: true, antialias: true });
+    } catch (e) { return null; }
+    renderer.setPixelRatio(Math.min(1.5, window.devicePixelRatio || 1));
+    renderer.setSize(1600, 900, false);
+    const scene = new THREE.Scene();
+    scene.fog = new THREE.Fog(0xe8f4fc, 18, 52);
+    const camera = new THREE.PerspectiveCamera(35, 16 / 9, .1, 100);
+    camera.position.set(0, 0, 16);
+
+    scene.add(new THREE.HemisphereLight(0xffffff, 0x9cc4e4, .95));
+    const sun = new THREE.DirectionalLight(0xffffff, .85); sun.position.set(6, 10, 8); scene.add(sun);
+    scene.add(new THREE.AmbientLight(0xffffff, .18));
+
+    /* avion, dessiné à partir de formes simples */
+    const white = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: .32, metalness: .12 });
+    const silver = new THREE.MeshStandardMaterial({ color: 0xd9e3ee, roughness: .4, metalness: .2 });
+    const navy = new THREE.MeshStandardMaterial({ color: 0x0a1c46, roughness: .45 });
+    const skyM = new THREE.MeshStandardMaterial({ color: 0x1e9bd7, roughness: .45 });
+    const amber = new THREE.MeshStandardMaterial({ color: 0xf2a20c, roughness: .4, emissive: 0x6a4200 });
+    const plane = new THREE.Group();
+    const add = (geo, mat, f) => { const m = new THREE.Mesh(geo, mat); f && f(m); plane.add(m); return m; };
+    add(new THREE.CylinderGeometry(.42, .42, 4.3, 40), white, m => { m.rotation.z = Math.PI / 2; });
+    add(new THREE.SphereGeometry(.42, 40, 20), white, m => { m.scale.set(1.9, 1, 1); m.position.x = 2.15; });
+    add(new THREE.ConeGeometry(.42, 1.7, 40), white, m => { m.rotation.z = Math.PI / 2; m.position.set(-3, .07, 0); });
+    add(new THREE.SphereGeometry(.2, 20, 10), navy, m => { m.scale.set(1.3, .45, 1.75); m.position.set(2.62, .17, 0); });
+    add(new THREE.CylinderGeometry(.425, .425, 3.9, 40, 1, true, Math.PI * .95, Math.PI * .1), skyM, m => { m.rotation.z = Math.PI / 2; m.position.x = -.1; });
+    for (let k = 0; k < 15; k++) add(new THREE.BoxGeometry(.11, .09, .03), navy, m => { m.position.set(1.55 - k * .22, .14, .41); });
+    const wingShape = (span, root, tip, sweep) => { const s = new THREE.Shape(); s.moveTo(root / 2, 0); s.lineTo(-root / 2, 0); s.lineTo(-root / 2 - sweep, span); s.lineTo(-root / 2 - sweep + tip, span); s.closePath(); return new THREE.ExtrudeGeometry(s, { depth: .06, bevelEnabled: false }); };
+    const wing = wingShape(3.1, 1.5, .5, 1.05);
+    add(wing, silver, m => { m.rotation.x = Math.PI / 2; m.position.set(.25, -.16, 0); });
+    add(wing, silver, m => { m.rotation.x = -Math.PI / 2; m.position.set(.25, -.22, 0); });
+    const stab = wingShape(1.15, .7, .3, .45);
+    add(stab, silver, m => { m.rotation.x = Math.PI / 2; m.position.set(-2.95, .1, 0); });
+    add(stab, silver, m => { m.rotation.x = -Math.PI / 2; m.position.set(-2.95, .04, 0); });
+    const fin = new THREE.Shape(); fin.moveTo(-2.1, .3); fin.lineTo(-3.45, .3); fin.lineTo(-3.85, 1.75); fin.lineTo(-3.3, 1.75); fin.closePath();
+    add(new THREE.ExtrudeGeometry(fin, { depth: .07, bevelEnabled: false }), navy, m => { m.position.z = -.035; });
+    const finTip = new THREE.Shape(); finTip.moveTo(-3.62, .95); finTip.lineTo(-3.85, 1.75); finTip.lineTo(-3.3, 1.75); finTip.lineTo(-3.18, 1.3); finTip.closePath();
+    add(new THREE.ExtrudeGeometry(finTip, { depth: .08, bevelEnabled: false }), skyM, m => { m.position.z = -.04; });
+    [1.2, -1.2].forEach(z => {
+      add(new THREE.CylinderGeometry(.23, .26, 1, 28), silver, m => { m.rotation.z = Math.PI / 2; m.position.set(.55, -.47, z); });
+      add(new THREE.TorusGeometry(.23, .035, 10, 28), navy, m => { m.rotation.y = Math.PI / 2; m.position.set(1.05, -.47, z); });
+    });
+    add(new THREE.SphereGeometry(.05, 10, 8), amber, m => { m.position.set(-.85, -.2, 3.1); });   // feu de bout d'aile
+    plane.rotation.order = 'YXZ';
+    scene.add(plane);
+
+    /* nuages */
+    const rand = (s => () => { s = (s * 16807) % 2147483647; return (s - 1) / 2147483646; })(42);
+    const cloudMat = new THREE.MeshLambertMaterial({ color: 0xffffff, transparent: true, opacity: .93 });
+    const puff = new THREE.IcosahedronGeometry(1, 2);
+    const layer = new THREE.Group(); scene.add(layer);
+    const clouds = [];
+    for (let c = 0; c < 34; c++) {
+      const g = new THREE.Group();
+      const n = 5 + Math.floor(rand() * 5);
+      for (let k = 0; k < n; k++) {
+        const m = new THREE.Mesh(puff, cloudMat);
+        const r = .7 + rand() * 1.1;
+        m.scale.set(r * 1.25, r * .8, r);
+        m.position.set((k - n / 2) * .95 + rand() * .5, rand() * .55 - (Math.abs(k - n / 2) * .12), rand() * .9 - .45);
+        g.add(m);
+      }
+      g.position.set(-30 + rand() * 60, -1.2 + rand() * 2.4, -26 + rand() * 30);
+      g.userData.speed = .6 + rand() * .5;
+      layer.add(g); clouds.push(g);
+    }
+
+    /* piste d'atterrissage, visible au sol */
+    const runway = new THREE.Group(); scene.add(runway);
+    const tarmac = new THREE.Mesh(new THREE.PlaneGeometry(120, 7), new THREE.MeshLambertMaterial({ color: 0x5d6c83, transparent: true, opacity: .55 }));
+    tarmac.rotation.x = -Math.PI / 2; runway.add(tarmac);
+    const lightMat = new THREE.MeshBasicMaterial({ color: 0xf2a20c, transparent: true });
+    const lineMat = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: .8 });
+    const runwayParts = [];
+    for (let k = -30; k <= 30; k++) {
+      [-3.2, 3.2].forEach(z => { const l = new THREE.Mesh(new THREE.SphereGeometry(.09, 8, 6), lightMat); l.position.set(k * 2, .05, z); runway.add(l); runwayParts.push(l); });
+      if (k % 2 === 0) { const s = new THREE.Mesh(new THREE.PlaneGeometry(1.4, .14), lineMat); s.rotation.x = -Math.PI / 2; s.position.set(k * 2, .02, 0); runway.add(s); runwayParts.push(s); }
+    }
+    runway.position.set(0, -6, -6);
+
+    /* ---------- au sol : aire, escalier, train, passagers ---------- */
+    const G = -1.05;                                   // niveau du tarmac dans le repère de l'avion
+    const groundMats = [], peopleMats = [];
+    const gm = (c, list) => { const m = new THREE.MeshStandardMaterial({ color: c, roughness: .5, metalness: .05, transparent: true, opacity: 0 }); list.push(m); return m; };
+    const gWhite = gm(0xffffff, groundMats), gSilver = gm(0xd9e3ee, groundMats), gNavy = gm(0x0a1c46, groundMats), gAmber = gm(0xf2a20c, groundMats);
+    const ground = new THREE.Group(); plane.add(ground);
+    const gAdd = (geo, mat, f, parent) => { const m = new THREE.Mesh(geo, mat); f && f(m); (parent || ground).add(m); return m; };
+
+    // aire de stationnement : une tache douce de tarmac
+    const cv = document.createElement('canvas'); cv.width = cv.height = 256;
+    const c2 = cv.getContext('2d'), grd = c2.createRadialGradient(128, 128, 8, 128, 128, 128);
+    grd.addColorStop(0, 'rgba(93,108,131,1)'); grd.addColorStop(.6, 'rgba(93,108,131,.7)'); grd.addColorStop(1, 'rgba(93,108,131,0)');
+    c2.fillStyle = grd; c2.fillRect(0, 0, 256, 256);
+    const apronMat = new THREE.MeshBasicMaterial({ map: new THREE.CanvasTexture(cv), transparent: true, opacity: 0, depthWrite: false });
+    gAdd(new THREE.PlaneGeometry(7.4, 3.8), apronMat, m => { m.rotation.x = -Math.PI / 2; m.position.set(1.6, G, 1.4); });
+
+    // porte avant ouverte
+    gAdd(new THREE.BoxGeometry(.24, .4, .04), gNavy, m => { m.position.set(1.85, 0, .41); });
+
+    // escalier passagers, posé contre la porte
+    const SX = 1.85, TOPY = -.2, TOPZ = .46, PZ = .7, BZ = 2.05, NST = 9;
+    const dz = (BZ - PZ) / NST, dy = (TOPY - G) / NST;
+    gAdd(new THREE.BoxGeometry(.38, .03, PZ - TOPZ + .02), gSilver, m => { m.position.set(SX, TOPY - .015, (TOPZ + PZ) / 2); });
+    for (let i = 0; i < NST; i++) gAdd(new THREE.BoxGeometry(.34, .025, dz * 1.05), gWhite, m => { m.position.set(SX, TOPY - (i + .5) * dy - .0125, PZ + (i + .5) * dz); });
+    const slopeL = Math.hypot(BZ - PZ, TOPY - G), slopeA = Math.atan2(TOPY - G, BZ - PZ);
+    [-.19, .19].forEach(o => gAdd(new THREE.BoxGeometry(.03, .08, slopeL), gNavy, m => { m.rotation.x = slopeA; m.position.set(SX + o, (TOPY + G) / 2 - .05, (PZ + BZ) / 2); }));
+    const between = (a, b, r, mat) => {
+      const d = new THREE.Vector3().subVectors(b, a);
+      return gAdd(new THREE.CylinderGeometry(r, r, d.length(), 8), mat, m => { m.position.copy(a).addScaledVector(d, .5); m.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), d.normalize()); });
+    };
+    const V = (x, y, z) => new THREE.Vector3(x, y, z);
+    [-.19, .19].forEach(o => {
+      const x = SX + o, h = .24;
+      between(V(x, TOPY + h, TOPZ + .04), V(x, TOPY + h, PZ), .012, gAmber);
+      between(V(x, TOPY + h, PZ), V(x, G + h, BZ), .012, gAmber);
+      [[TOPZ + .04, TOPY], [PZ, TOPY], [(PZ + BZ) / 2, (TOPY + G) / 2], [BZ, G]].forEach(([z, y]) => between(V(x, y, z), V(x, y + h, z), .009, gSilver));
+    });
+    gAdd(new THREE.BoxGeometry(.42, .13, 1.15), gNavy, m => { m.position.set(SX, G + .1, 1.27); });
+    gAdd(new THREE.BoxGeometry(.3, TOPY - G - .16, .07), gSilver, m => { m.position.set(SX, (TOPY + G + .16) / 2, .66); });
+    [.85, 1.7].forEach(z => [-.2, .2].forEach(o => gAdd(new THREE.CylinderGeometry(.055, .055, .04, 14), gNavy, m => { m.rotation.z = Math.PI / 2; m.position.set(SX + o, G + .055, z); })));
+
+    // chemin des passagers : depuis l'aérogare, jusqu'au pied de l'escalier, puis jusqu'à la porte
+    const PATH = [V(4.6, G, 2.8), V(2.5, G, 2.4), V(SX, G, BZ + .05), V(SX, TOPY, PZ), V(SX, TOPY, TOPZ - .08)];
+    const segL = [], cumL = [0];
+    for (let i = 0; i < PATH.length - 1; i++) { segL.push(PATH[i].distanceTo(PATH[i + 1])); cumL.push(cumL[i] + segL[i]); }
+    const TOTAL = cumL[cumL.length - 1];
+    const sPos = new THREE.Vector3(), sDir = new THREE.Vector3();
+    function sample(d) {
+      let i = 0; while (i < segL.length - 1 && d > cumL[i + 1]) i++;
+      sPos.lerpVectors(PATH[i], PATH[i + 1], Math.max(0, Math.min(1, (d - cumL[i]) / segL[i])));
+      sDir.subVectors(PATH[i + 1], PATH[i]).normalize();
+    }
+    // ligne de guidage ambre au sol
+    const dashMat = new THREE.MeshBasicMaterial({ color: 0xf2a20c, transparent: true, opacity: 0, depthWrite: false });
+    for (let i = 0; i < 2; i++) {
+      const n = Math.floor(segL[i] / .2), a = PATH[i], b = PATH[i + 1], ang = Math.atan2(-(b.z - a.z), b.x - a.x);
+      for (let q = 0; q < n; q++) gAdd(new THREE.PlaneGeometry(.1, .03), dashMat, m => { m.rotation.set(-Math.PI / 2, 0, ang); m.position.lerpVectors(a, b, (q + .5) / n); m.position.y = G + .004; m.position.z += .14; });
+    }
+
+    // passagers stylisés, aux couleurs de la présentation
+    const people = new THREE.Group(); ground.add(people);
+    const matCache = {};
+    const pMat = c => matCache[c] || (matCache[c] = gm(c, peopleMats));
+    const bodyCols = [0x0a1c46, 0x1e9bd7, 0xf2a20c, 0x54678d, 0xffffff, 0x163577, 0x0f6fae];
+    const skinCols = [0xf1d3b5, 0xc9956b, 0x8d5a3b, 0xe8bf98];
+    const legGeo = new THREE.BoxGeometry(.034, .13, .034); legGeo.translate(0, -.065, 0);
+    const bodyGeo = new THREE.CylinderGeometry(.046, .058, .16, 12), headGeo = new THREE.SphereGeometry(.044, 14, 10);
+    const bagGeo = new THREE.BoxGeometry(.075, .1, .045), handleGeo = new THREE.CylinderGeometry(.006, .006, .12, 6);
+    const FIG = 13, figs = [];
+    for (let i = 0; i < FIG; i++) {
+      const f = new THREE.Group();
+      const legs = [-.028, .028].map(z => { const l = new THREE.Mesh(legGeo, pMat(0x1c2b4f)); l.position.set(0, .13, z); f.add(l); return l; });
+      const body = new THREE.Mesh(bodyGeo, pMat(bodyCols[i % bodyCols.length])); body.position.y = .21; f.add(body);
+      const head = new THREE.Mesh(headGeo, pMat(skinCols[(i * 3) % skinCols.length])); head.position.y = .335; f.add(head);
+      if (i % 3 === 0) {
+        const bag = new THREE.Mesh(bagGeo, pMat(i % 2 ? 0xf2a20c : 0x54678d)); bag.position.set(-.1, .06, .06); bag.rotation.z = -.3; f.add(bag);
+        const hd = new THREE.Mesh(handleGeo, pMat(0x0a1c46)); hd.position.set(-.06, .16, .06); hd.rotation.z = -.9; f.add(hd);
+      }
+      f.userData = { legs, off: i / FIG + (i % 2 ? .012 : -.01) };
+      people.add(f); figs.push(f);
+    }
+    let activeDir = 1, visP = 0;
+
+    // piste de roulage sous l'avion : bandes et feux qui défilent quand il roule
+    // pivot sous la roue avant : la piste reste à plat quand l'avion pique du nez
+    const MGX = .02;                                   // position du train principal
+    const rwyPivot = new THREE.Group(); rwyPivot.position.set(MGX, G, 0); plane.add(rwyPivot);
+    const rwy = new THREE.Group(); rwy.position.set(3 - MGX, -G, 0); rwyPivot.add(rwy);
+    // petits nuages de fumée des pneus au toucher
+    const puffMat = new THREE.MeshBasicMaterial({ color: 0xe9eff6, transparent: true, opacity: 0, depthWrite: false });
+    const puffs = [-.42, .42].map(z => { const m = new THREE.Mesh(new THREE.SphereGeometry(.16, 14, 10), puffMat); m.position.set(0, .1, z * 1.4); m.visible = false; m.renderOrder = 3; rwyPivot.add(m); return m; });
+    const RL = 22, RW = 3.4;
+    const rc = document.createElement('canvas'); rc.width = 512; rc.height = 64;
+    const r2 = rc.getContext('2d');
+    const gx = r2.createLinearGradient(0, 0, 512, 0);
+    gx.addColorStop(0, 'rgba(93,108,131,0)'); gx.addColorStop(.18, 'rgba(93,108,131,1)'); gx.addColorStop(.82, 'rgba(93,108,131,1)'); gx.addColorStop(1, 'rgba(93,108,131,0)');
+    r2.fillStyle = gx; r2.fillRect(0, 0, 512, 64);
+    r2.globalCompositeOperation = 'destination-in';
+    const gy = r2.createLinearGradient(0, 0, 0, 64);
+    gy.addColorStop(0, 'rgba(0,0,0,0)'); gy.addColorStop(.15, 'rgba(0,0,0,1)'); gy.addColorStop(.85, 'rgba(0,0,0,1)'); gy.addColorStop(1, 'rgba(0,0,0,0)');
+    r2.fillStyle = gy; r2.fillRect(0, 0, 512, 64);
+    const rwyMat = new THREE.MeshBasicMaterial({ map: new THREE.CanvasTexture(rc), transparent: true, opacity: 0, depthWrite: false });
+    const rwyStrip = new THREE.Mesh(new THREE.PlaneGeometry(RL, RW), rwyMat);
+    rwyStrip.rotation.x = -Math.PI / 2; rwyStrip.position.y = G - .003; rwy.add(rwyStrip);
+    const rwyLine = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0, depthWrite: false });
+    const rwyLamp = new THREE.MeshBasicMaterial({ color: 0xf2a20c, transparent: true, opacity: 0 });
+    const rwyMoving = [];
+    const dashGeo = new THREE.PlaneGeometry(.7, .07), lampGeo = new THREE.SphereGeometry(.045, 8, 6);
+    for (let x = -RL / 2; x < RL / 2; x += 1.4) {
+      const m = new THREE.Mesh(dashGeo, rwyLine); m.rotation.x = -Math.PI / 2; m.position.set(x, G, 0); rwy.add(m); rwyMoving.push(m);
+    }
+    for (let x = -RL / 2; x < RL / 2; x += .9) [-RW / 2 + .2, RW / 2 - .2].forEach(z => {
+      const m = new THREE.Mesh(lampGeo, rwyLamp); m.position.set(x, G + .03, z); rwy.add(m); rwyMoving.push(m);
+    });
+
+    // train d'atterrissage, rentré en vol
+    const gear = new THREE.Group(); gear.position.y = -.18; plane.add(gear);
+    const strutL = -.18 - (G + .07);
+    const gearAdd = (geo, mat, f) => { const m = new THREE.Mesh(geo, mat); f(m); gear.add(m); };
+    const wheelGeo = new THREE.CylinderGeometry(.075, .075, .07, 16);
+    [[2.2, 0], [.02, .42], [.02, -.42]].forEach(([x, z]) => {
+      gearAdd(new THREE.CylinderGeometry(.025, .025, strutL, 8), silver, m => { m.position.set(x, -strutL / 2, z); });
+      (x > 1 ? [x] : [x - .08, x + .08]).forEach(wx => gearAdd(wheelGeo, navy, m => { m.rotation.x = Math.PI / 2; m.position.set(wx, -strutL, z); }));
+    });
+
+    /* une pose par slide : position, taille et assiette de l'avion, hauteur des nuages,
+       piste, scène au sol (board), sens des passagers (1 embarquent, -1 débarquent), train sorti */
+    const P = (x, y, s, yaw, pitch, roll, cloudY, ground, board, dir, gear, taxi = 0) => ({ x, y, s, yaw, pitch, roll, cloudY, ground, board, dir, gear, taxi });
+    const poses = [
+      P(4.6, 1.25, 1.05, -.42, 0, .18, 8, 0, 1, 1, 1),   // titre : embarquement
+      P(6.3, 2.9, .5, -.55, 0, .5, 8, 0, 0, 1, 1, 1),    // embarquement : roulage vers la piste
+      P(6.3, 3.1, .5, -.55, .24, 0, -.6, 0, 0, 1, 0),    // décollage
+      P(6.3, 3.1, .5, -.55, .14, -.06, -2.6, 0, 0, 1, 0),// montée
+      P(6.3, 3.1, .5, -.55, 0, 0, -5.4, 0, 0, 1, 0),     // croisière
+      P(6.3, 3.1, .5, -.55, -.07, .05, -3.6, 0, 0, 1, 0),// descente
+      P(6.3, 3.1, .5, -.55, -.09, 0, -1.2, 0, 0, 1, 1),  // approche
+      P(6.3, 2.4, .5, -.55, 0, .45, 7.5, 0, 0, 1, 1, 1),  // atterrissage (séquence animée ci-dessous)
+      P(6.3, 2.9, .5, -.55, 0, .5, 8, 0, 0, 1, 1, 1),    // roulage vers la porte
+      P(6.3, 3.0, .5, -.55, 0, .18, 8, 0, 1, -1, 1),     // porte : débarquement
+      P(6.3, 3.0, .5, -.55, 0, .18, 8, 0, 1, -1, 1),     // destination
+      P(5.95, -1.45, .78, -.42, 0, .18, 8, 0, 1, -1, 1),   // fin
+    ];
+    let target = poses[0], cur = Object.assign({}, poses[0]);
+    /* séquence d'atterrissage : approche nez légèrement bas, arrondi nez haut,
+       toucher sur le train principal, le nez se pose, puis freinage */
+    const LAND = 7;
+    let landOn = false, landPending = false, landStart = 0, landH = 0, landP = 0, rwySpeed = 1.6;
+    const ease = x => x < 0 ? 0 : x > 1 ? 1 : x * x * (3 - 2 * x);
+    function landing(tt) {                            // tt : secondes depuis l'arrivée sur la slide
+      const T_TOUCH = 2.6, T_NOSE = 3.7;
+      const h = tt < T_TOUCH ? 1.8 * Math.pow(1 - tt / T_TOUCH, 1.6) : 0;
+      let pitch;
+      if (tt < 1.4) pitch = -.05 + .03 * ease(tt / 1.4);                    // trajectoire de descente
+      else if (tt < T_TOUCH) pitch = -.02 + .13 * ease((tt - 1.4) / (T_TOUCH - 1.4)); // arrondi
+      else pitch = .11 * (1 - ease((tt - T_TOUCH) / (T_NOSE - T_TOUCH)));  // le nez s'abaisse
+      const speed = tt < T_TOUCH ? 5 : 5 - 3.4 * ease((tt - T_TOUCH) / 2.6); // freinage
+      return { h, pitch, speed, touch: tt - T_TOUCH };
+    }
+    function setPose(i, instant) {
+      target = poses[Math.min(i, poses.length - 1)];
+      landOn = i === LAND; landPending = landOn;    // démarre à la prochaine image
+      if (instant || reduce) { cur = Object.assign({}, target); activeDir = target.dir; visP = target.board; }
+    }
+
+    let last = performance.now(), t = 0;
+    function frame(now) {
+      const dt = Math.max(0, Math.min(.05, (now - last) / 1000)); last = now; t += dt;
+      const k = 1 - Math.pow(.06, dt);                    // lissage indépendant de la cadence
+      for (const key in cur) cur[key] += (target[key] - cur[key]) * k;
+      const air = 1 - Math.max(cur.board, cur.taxi);     // immobile quand l'avion est au sol
+      const bob = reduce ? 0 : Math.sin(t * 1.1) * .06 * air;
+      // séquence d'atterrissage
+      let touch = -1;
+      if (landPending) { landStart = t; landPending = false; }
+      if (landOn && !reduce) {
+        const L = landing(t - landStart);
+        landH = L.h; landP = L.pitch; rwySpeed = L.speed; touch = L.touch;
+      } else {
+        landH += (0 - landH) * k; landP += (0 - landP) * k; rwySpeed += (1.6 - rwySpeed) * k;
+      }
+      plane.position.set(cur.x, cur.y + bob * cur.s + landH * cur.s, 0);
+      plane.scale.setScalar(cur.s);
+      plane.rotation.set(cur.roll + (reduce ? 0 : Math.sin(t * .7) * .015 * air), cur.yaw, cur.pitch + landP);
+      layer.position.y = cur.cloudY;
+      if (!reduce) clouds.forEach(c => { c.position.x -= c.userData.speed * dt * 2.2; if (c.position.x < -32) c.position.x += 64; });
+      runway.position.y = -9 + cur.ground * 4.1;
+      tarmac.material.opacity = .35 * cur.ground;
+      lightMat.opacity = cur.ground * (.75 + (reduce ? 0 : .25 * Math.sin(t * 4)));
+      lineMat.opacity = .8 * cur.ground;
+      if (!reduce) runway.children.forEach(m => { m.position.x -= dt * 3 * cur.ground; if (m.position.x < -62) m.position.x += 122; });
+
+      // train d'atterrissage
+      gear.scale.y = Math.max(.001, cur.gear); gear.visible = cur.gear > .02;
+
+      // piste : visible et qui défile tant que l'avion roule
+      const tx = Math.max(0, Math.min(1, cur.taxi));
+      rwy.visible = tx > .01;
+      rwyPivot.rotation.z = -(cur.pitch + landP);       // la piste reste à plat
+      rwyPivot.position.y = G - landH;                  // et sous l'avion pendant la descente
+      puffs.forEach(m => {
+        const a = touch >= 0 && touch < 1.1 ? touch / 1.1 : -1;
+        m.visible = a >= 0;
+        if (a >= 0) { m.scale.setScalar(.8 + 2.2 * a); m.position.set(-2.4 - a * 2.8, .12 + .15 * a, Math.sign(m.position.z) * (.45 + .25 * a)); }
+      });
+      puffMat.opacity = touch >= 0 && touch < 1.1 ? .85 * (1 - touch / 1.1) : 0;
+      rwyMat.opacity = .6 * tx; rwyLine.opacity = .85 * tx;
+      rwyLamp.opacity = tx * (.75 + (reduce ? 0 : .25 * Math.sin(t * 4)));
+      if (rwy.visible) rwyMoving.forEach(m => {
+        if (!reduce) { m.position.x -= dt * rwySpeed * tx; if (m.position.x < -RL / 2) m.position.x += RL; }
+        m.scale.setScalar(Math.max(.001, Math.min(1, (RL / 2 - Math.abs(m.position.x)) / 3)));
+      });
+
+      // scène au sol : on change de sens (embarquement / débarquement) seulement une fois les passagers effacés
+      const b = Math.max(0, Math.min(1, cur.board));
+      ground.visible = b > .01;
+      groundMats.forEach(m => { m.opacity = b; });
+      apronMat.opacity = .55 * b; dashMat.opacity = .85 * b;
+      visP += ((target.dir === activeDir ? target.board : 0) - visP) * k;
+      if (visP < .03) activeDir = target.dir;
+      const pv = Math.max(0, Math.min(b, visP));
+      peopleMats.forEach(m => { m.opacity = pv; });
+      people.visible = pv > .01;
+      if (people.visible) {
+        const tp = reduce ? 4 : t, SPEED = .3;
+        figs.forEach(f => {
+          let u = (tp * SPEED / TOTAL + f.userData.off) % 1;
+          if (activeDir < 0) u = 1 - u;
+          const d = u * TOTAL;
+          sample(d);
+          const step = reduce ? 0 : d * 26;
+          f.position.copy(sPos); f.position.y += Math.abs(Math.cos(step)) * .012;
+          const hx = activeDir < 0 ? -sDir.x : sDir.x, hz = activeDir < 0 ? -sDir.z : sDir.z;
+          f.rotation.y = Math.atan2(-hz, hx);
+          f.userData.legs[0].rotation.z = Math.sin(step) * .5;
+          f.userData.legs[1].rotation.z = -Math.sin(step) * .5;
+          // apparaissent au loin, disparaissent dans la porte (et l'inverse au débarquement)
+          f.scale.setScalar(Math.max(.001, Math.min(1, d / .35, (TOTAL - d) / .22)));
+        });
+      }
+      renderer.render(scene, camera);
+      requestAnimationFrame(frame);
+    }
+    requestAnimationFrame(frame);
+    return { setPose };
+  }
+})();
+</script>
+
+</body></html>

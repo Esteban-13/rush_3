@@ -2,7 +2,7 @@
 
 **Constat.** 56,7 % des passagers interrogés se disent neutres ou insatisfaits. Deux questions : où investir pour améliorer la satisfaction, et comment repérer les passagers mécontents à temps pour agir.
 
-## 1. Où investir : trois leviers sur lesquels la compagnie peut agir
+## 1. Où investir : deux leviers prioritaires, puis le confort à bord
 
 | Levier | Ce que montrent les données | Notre lecture |
 |---|---|---|
