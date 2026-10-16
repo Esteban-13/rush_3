@@ -5,14 +5,20 @@ Analyse de la satisfaction des passagers d'une compagnie aérienne européenne p
 1. **comprendre ce qui fait la satisfaction**, pour savoir où investir ;
 2. **repérer à l'atterrissage les passagers probablement insatisfaits**, pour que les équipes au sol les accueillent en priorité (10 % des passagers au maximum).
 
-Livrables : rapport PDF, code reproductible, présentation orale de 10 minutes.
+## Livrables
+
+| Livrable | Où le trouver |
+| --- | --- |
+| Rapport (PDF, 8 pages + annexes) | [`rapport/rapport_rush3.pdf`](rapport/rapport_rush3.pdf) |
+| Présentation orale (10 minutes) | [`presentation/presentation_rush3.html`](presentation/presentation_rush3.html), à ouvrir dans un navigateur · [version en ligne](https://claude.ai/artifact/4bT34gsv6cGrxAqB9tXWj1) |
+| Code | notebooks et scripts de ce dépôt (voir « Relancer le projet ») |
 
 ## Équipe et responsabilités
 
 | Membre | Partie | Fichiers |
 | --- | --- | --- |
 | Esteban | **A – Données, exploration et facteurs de satisfaction** : création du dépôt, `config.py`, nettoyage, exploration, analyse des 14 notes de service, effet des retards | `config.py`, `notebook_partA_exploration_facteurs.ipynb`, `figures/fig1` à `fig5`, `results_partA.json`, `data/clean/` |
-| Ihmane | **B – Modèles de prédiction** : règles simples, régression logistique, arbre de décision (retenu), validation croisée, contrôles (mineurs, âge, motif du voyage, capacité), évaluation finale sur le test, section Modèles du rapport | `modele_utils.py`, `notebooks/04_modeles.ipynb`, `notebooks/05_evaluation_finale.ipynb`, `figures/04_*`, `resultats/04_*`, `rapport/section_modeles.md` |
+| Ihman | **B – Modèles de prédiction** : règles simples, régression logistique, arbre de décision (retenu), validation croisée, contrôles (mineurs, âge, motif du voyage, capacité), évaluation finale sur le test, section Modèles du rapport | `modele_utils.py`, `notebooks/04_modeles.ipynb`, `notebooks/05_evaluation_finale.ipynb`, `figures/04_*`, `resultats/04_*`, `rapport/section_modeles.md` |
 | Maïlys Augier | **C – Économie, protection des données et restitution** : calcul du gain en euros et analyse de sensibilité, protection des données (RGPD), synthèse pour la direction, recommandations, assemblage du rapport, support de présentation, README | `notebooks/04b_cout_metier.ipynb`, `figures/04b_*`, `resultats/04b_*`, `README.md`, rapport et slides |
 
 ## Structure
@@ -33,7 +39,8 @@ rush_3/
 │   └── 05_evaluation_finale.ipynb # SEUL notebook qui lit test.csv, exécuté une seule fois
 ├── figures/
 ├── resultats/
-└── rapport/
+├── rapport/                   # sections du rapport + rapport_rush3.pdf
+└── presentation/              # presentation_rush3.html (slides de l'oral)
 ```
 
 ## Relancer le projet
@@ -77,4 +84,4 @@ Toutes les opérations aléatoires utilisent `SEED = 42` : deux exécutions donn
 
 Le gradient boosting ne fait pas mieux que l'arbre : on ne perd rien à choisir un modèle explicable. La règle de 3 questions résume l'arbre et obtient 98,5 % de son gain.
 
-Résultat sur le jeu de test : voir `resultats/05_resultats_test.csv`.
+**Résultat sur le jeu de test** (lu une seule fois) : 96,1 % de bons choix et **5 607 €** pour 1 000 passagers, soit +606 € par rapport à la règle « voyage personnel ». Détail : `resultats/05_resultats_test.csv`.

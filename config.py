@@ -2,8 +2,8 @@
  
 SEED = 42  # graine aléatoire : garantit les mêmes résultats à chaque exécution
  
-TRAIN_PATH = "data/train.csv"
-TEST_PATH = "data/test.csv"  # ne s'ouvre QUE dans 05_evaluation_finale
+TRAIN_PATH = "data/raw/train.csv"
+TEST_PATH = "data/raw/test.csv"  # ne s'ouvre QUE dans 05_evaluation_finale
  
 TARGET = "satisfaction"
  
