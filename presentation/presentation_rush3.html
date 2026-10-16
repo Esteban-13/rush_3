@@ -341,6 +341,22 @@ body { margin: 0; background: var(--navy); color: var(--ink); font-family: var(-
   .bcol .bar, .hrow .fill, .gbar, .sfill { transition: none; transform: none !important; }
   .dots circle { transition: none; }
 }
+
+/* ---------- 6 bis · trois questions : longueur = passagers restants, partie foncée = mécontents ---------- */
+.gbar2 { height: 54px; width: calc(var(--w) * .66%); min-width: 64px; flex: none; display: flex; border-radius: 0 6px 6px 0; overflow: hidden;
+  transform-origin: left; transform: scaleX(.02); transition: transform 1s cubic-bezier(.2,.7,.2,1); transition-delay: var(--d, 0s); }
+.slide.active .gbar2 { transform: scaleX(1); }
+.gbar2 .bad { width: calc(var(--m) * 1%); background: var(--navy); }
+.gbar2 .ok { flex: 1; background: #6fb3e3; }
+.gstep.target .gbar2 { box-shadow: 0 0 0 3px var(--amber); }
+.gstep.target .gq { color: var(--navy); }
+.gline .go { font-family: var(--f-mono); font-size: 12.5px; letter-spacing: .12em; text-transform: uppercase; background: var(--amber); color: var(--navy); padding: 6px 10px; border-radius: 4px; white-space: nowrap; }
+.glegend { margin-left: 406px; display: flex; gap: 22px; align-items: center; font-size: 15.5px; color: var(--muted); }
+.glegend span { display: flex; align-items: center; gap: 8px; }
+.glegend .sw { width: 14px; height: 14px; border-radius: 3px; display: inline-block; }
+.glegend .sw-bad { background: var(--navy); } .glegend .sw-ok { background: #cfe2f1; }
+.glegend .hint { font-family: var(--f-mono); font-size: 12.5px; letter-spacing: .04em; }
+@media (prefers-reduced-motion: reduce) { .gbar2 { transition: none; transform: none !important; } }
 </style>
 </head>
 <body>
@@ -473,7 +489,7 @@ body { margin: 0; background: var(--navy); color: var(--ink); font-family: var(-
     <!-- 5 · Descente : les méthodes -->
     <section class="slide s-methods" data-phase="Début de descente" data-alt="24000" data-speaker="Partie B · Ihman">
       <p class="eyebrow rise">Début de descente <i>·</i> Qui aborder</p>
-      <h2 class="title rise" style="--d:.08s">Un modèle simple bat la meilleure règle</h2>
+      <h2 class="title rise" style="--d:.08s">Le choix du modèle</h2>
       <div class="wrap">
         <div>
           <div class="hbars">
@@ -498,17 +514,17 @@ body { margin: 0; background: var(--navy); color: var(--ink); font-family: var(-
     <!-- 6 · Approche : 3 questions -->
     <section class="slide s-glide" data-phase="Approche" data-alt="6000" data-speaker="Partie B · Ihman">
       <p class="eyebrow rise">Approche <i>·</i> Le modèle retenu</p>
-      <h2 class="title rise" style="--d:.08s">L'arbre de décision tient en trois questions</h2>
+      <h2 class="title rise" style="--d:.08s">L'arbre se résume en trois questions</h2>
       <div class="glide">
-        <div class="gstep rise" style="--d:.15s"><div class="gq"><small>Au départ</small>Tous les passagers</div><div class="gline"><div class="gbar" style="--w:100; --d:.2s"><span class="share">100 %</span></div><span class="rate"><b>57 %</b>mécontents</span></div></div>
-        <div class="gstep rise" style="--d:.3s"><div class="gq"><small>Question 1</small>Pas en Business ?</div><div class="gline"><div class="gbar" style="--w:52; --d:.4s"><span class="share">52 %</span></div><span class="rate"><b>81 %</b>mécontents</span></div></div>
-        <div class="gstep rise" style="--d:.45s"><div class="gq"><small>Question 2</small>Voyage personnel ?</div><div class="gline"><div class="gbar" style="--w:29; --d:.6s"><span class="share">29 %</span></div><span class="rate"><b>90 %</b>mécontents</span></div></div>
-        <div class="gstep rise" style="--d:.6s"><div class="gq"><small>Question 3</small>Retard à l'arrivée de plus de 5 min ?</div><div class="gline"><div class="gbar" style="--w:9.8; --d:.8s"><span class="share">9,8 %</span></div><span class="rate"><b>95 %</b>mécontents</span></div></div>
+        <div class="gstep rise" style="--d:.15s"><div class="gq"><small>Au départ</small>Tous les passagers</div><div class="gline"><div class="gbar2" style="--w:100; --m:57; --d:.2s"><span class="bad"></span><span class="ok"></span></div><span class="rate"><b>100</b>sur 100 · <b>57 %</b>mécontents</span></div></div>
+        <div class="gstep rise" style="--d:.3s"><div class="gq"><small>Question 1</small>Pas en Business ?</div><div class="gline"><div class="gbar2" style="--w:52; --m:81; --d:.4s"><span class="bad"></span><span class="ok"></span></div><span class="rate"><b>52</b>sur 100 · <b>81 %</b>mécontents</span></div></div>
+        <div class="gstep rise" style="--d:.45s"><div class="gq"><small>Question 2</small>Voyage personnel ?</div><div class="gline"><div class="gbar2" style="--w:29; --m:90; --d:.6s"><span class="bad"></span><span class="ok"></span></div><span class="rate"><b>29</b>sur 100 · <b>90 %</b>mécontents</span></div></div>
+        <div class="gstep target rise" style="--d:.6s"><div class="gq"><small>Question 3</small>Plus de 5 min de retard ?</div><div class="gline"><div class="gbar2" style="--w:9.8; --m:95; --d:.8s"><span class="bad"></span><span class="ok"></span></div><span class="rate"><b>10</b>sur 100 · <b>95 %</b>mécontents</span><span class="go">Accueil prioritaire</span></div></div>
       </div>
       <div class="glide-foot">
-        <div class="rise" style="--d:.8s"><span class="num">9,8 %</span><p>des passagers : presque exactement la capacité des équipes.</p></div>
-        <div class="rise" style="--d:.9s"><span class="num">95 %</span><p>sont vraiment mécontents dans ce groupe.</p></div>
-        <div class="rise" style="--d:1s"><span class="num">98,5 %</span><p>du gain de l'arbre complet, avec ces trois questions seulement.</p></div>
+        <div class="rise" style="--d:.8s"><span class="num">10 sur 100</span><p>passagers retenus (9,8 %) : la capacité des équipes.</p></div>
+        <div class="rise" style="--d:.9s"><span class="num">95 %</span><p>d'entre eux sont vraiment mécontents.</p></div>
+        <div class="rise" style="--d:1s"><span class="num">98,5 %</span><p>du gain de l'arbre complet : ces questions en sont la version simple.</p></div>
       </div>
     </section>
 
@@ -533,8 +549,7 @@ body { margin: 0; background: var(--navy); color: var(--ink); font-family: var(-
             <div><span class="num neg">4</span><small>passagers satisfaits, −40 € chacun</small></div>
           </div>
           <div class="split rise" style="--d:.55s">
-            <div><span class="num">+606 €</span><small>face à la règle « voyage perso »</small></div>
-            <div><span class="num">0,845</span><small>AUC, contre 0,848 en validation croisée</small></div>
+            <div style="grid-column: 1 / -1"><span class="num">+606 €</span><small>de plus que la règle « voyage perso », pour 1 000 passagers</small></div>
           </div>
         </div>
       </div>
